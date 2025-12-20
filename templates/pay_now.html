@@ -1,0 +1,25 @@
+{% extends 'base.html' %}
+{% block title %}Pay Now{% endblock %}
+
+{% block content %}
+<h2>Pay Now</h2>
+
+<div class="card p-4">
+    <h4>Total Amount: <strong>{{ total }} BDT</strong></h4>
+
+    <p>Select your payment method:</p>
+
+    <a href="{{ url_for('fake_payment_success') }}" class="btn btn-primary">
+        Pay with Gateway (Demo Button)
+    </a>
+    <br>
+    <form method="post" action="{{ url_for('bkash_pay') }}">
+        <button type="submit" class="btn btn-danger w-100">
+            Pay with bKash
+        </button>
+    </form>
+
+    
+
+</div>
+{% endblock %}

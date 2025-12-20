@@ -1,0 +1,107 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <title>{% block title %}Admin - RestaurantApp{% endblock %}</title>
+
+    <link rel="shortcut icon" href="/static/img/mylogo.png">
+
+    <!-- Bootstrap 5 -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+    <!-- Bootstrap Icons -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/admin.css') }}">
+    {% block head %}{% endblock %}
+</head>
+
+<body class="admin-body">
+
+    <div id="admin-wrapper">
+        <!-- Sidebar -->
+        <nav id="sidebar">
+            <div class="sidebar-header">
+                <h4 class="mb-0"><i class="bi bi-speedometer2 me-2"></i>Admin Panel</h4>
+            </div>
+
+            <ul class="list-unstyled components">
+                <li class="{% if request.endpoint == 'admin_index' %}active{% endif %}">
+                    <a href="{{ url_for('admin_index') }}"><i class="bi bi-grid-1x2"></i> Dashboard</a>
+                </li>
+                <li class="{% if request.endpoint == 'admin_add_menu' %}active{% endif %}">
+                    <a href="{{ url_for('admin_add_menu') }}"><i class="bi bi-plus-circle"></i> Add Menu Item</a>
+                </li>
+                <li class="{% if request.endpoint == 'admin_orders' %}active{% endif %}">
+                    <a href="{{ url_for('admin_orders') }}"><i class="bi bi-cart-check"></i> Orders</a>
+                </li>
+                <li class="{% if request.endpoint == 'admin_reservations' %}active{% endif %}">
+                    <a href="{{ url_for('admin_reservations') }}"><i class="bi bi-calendar-check"></i> Reservations</a>
+                </li>
+                <li class="{% if request.endpoint == 'sales_report' %}active{% endif %}">
+                    <a href="{{ url_for('sales_report') }}"><i class="bi bi-graph-up-arrow"></i> Sales Report</a>
+                </li>
+                <hr class="mx-3 border-secondary">
+                <li>
+                    <a href="{{ url_for('index') }}"><i class="bi bi-house"></i> View Site</a>
+                </li>
+                <li>
+                    <a href="{{ url_for('admin_logout') }}"><i class="bi bi-box-arrow-right"></i> Logout</a>
+                </li>
+            </ul>
+        </nav>
+
+        <!-- Page Content -->
+        <div id="content">
+            <nav class="navbar navbar-expand-lg navbar-dark bg-transparent mb-4">
+                <div class="container-fluid p-0">
+                    <button type="button" id="sidebarCollapse" class="btn btn-outline-light me-3 d-lg-none">
+                        <i class="bi bi-list"></i>
+                    </button>
+                    <h4 class="mb-0">{% block admin_title %}{% endblock %}</h4>
+
+                    <div class="ms-auto d-flex align-items-center">
+                        <span class="text-muted small me-3"><i class="bi bi-person-circle me-1"></i> Admin</span>
+                        <a href="{{ url_for('admin_logout') }}" class="btn btn-sm btn-outline-danger">Logout</a>
+                    </div>
+                </div>
+            </nav>
+
+            {% with messages = get_flashed_messages() %}
+            {% if messages %}
+            {% for msg in messages %}
+            <div class="alert alert-info alert-dismissible fade show bg-dark text-light border-secondary" role="alert">
+                {{ msg }}
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="alert"
+                    aria-label="Close"></button>
+            </div>
+            {% endfor %}
+            {% endif %}
+            {% endwith %}
+
+            {% block content %}{% endblock %}
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            const sidebarCollapse = document.getElementById('sidebarCollapse');
+            const sidebar = document.getElementById('sidebar');
+            const content = document.getElementById('content');
+
+            if (sidebarCollapse) {
+                sidebarCollapse.addEventListener('click', function () {
+                    sidebar.classList.toggle('active');
+                    content.classList.toggle('active');
+                });
+            }
+        });
+    </script>
+    {% block scripts %}{% endblock %}
+</body>
+
+</html>

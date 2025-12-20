@@ -1,0 +1,388 @@
+{% extends 'admin/admin_base.html' %}
+
+{% block title %}Dashboard - Admin{% endblock %}
+
+{% block admin_title %}Dashboard Overview{% endblock %}
+
+{% block content %}
+
+<!-- QUICK STATS -->
+<div class="row g-4 mb-4">
+  <div class="col-md-3">
+    <div class="glass-card text-center">
+      <div class="text-muted small mb-1">Total Sales</div>
+      <h3 class="mb-0 text-white">${{ '%.2f'|format(total_sales) }}</h3>
+    </div>
+  </div>
+  <div class="col-md-3">
+    <div class="glass-card text-center">
+      <div class="text-muted small mb-1">Recent Orders</div>
+      <h3 class="mb-0 text-white">{{ orders|length }}</h3>
+    </div>
+  </div>
+  <div class="col-md-3">
+    <div class="glass-card text-center">
+      <div class="text-muted small mb-1">Active Reservations</div>
+      <h3 class="mb-0 text-white">{{ reservations|selectattr('status', 'equalto', 'Active')|list|length }}</h3>
+    </div>
+  </div>
+  <div class="col-md-3">
+    <div class="glass-card text-center">
+      <div class="text-muted small mb-1">Menu Items</div>
+      <h3 class="mb-0 text-white">{{ items|length }}</h3>
+    </div>
+  </div>
+</div>
+
+<!-- SEARCH AND ACTIONS -->
+<div class="glass-card mb-4">
+  <div class="row align-items-center">
+    <div class="col-md-6">
+      <div class="input-group">
+        <span class="input-group-text bg-transparent border-secondary text-muted"><i class="bi bi-search"></i></span>
+        <input type="text" id="searchUsername" class="form-control admin-input"
+          placeholder="Search user by username...">
+        <button class="btn btn-primary" onclick="searchUser()">Search User</button>
+      </div>
+    </div>
+    <div class="col-md-6 text-md-end mt-3 mt-md-0">
+      <a class="btn btn-outline-light me-2" href="{{ url_for('admin_index') }}"><i class="bi bi-arrow-clockwise"></i>
+        Refresh</a>
+      <a class="btn btn-primary" href="{{ url_for('admin_add_menu') }}"><i class="bi bi-plus-lg"></i> Add Menu Item</a>
+    </div>
+  </div>
+</div>
+
+<!-- MENU ITEMS TABLE -->
+<div class="glass-card">
+  <div class="d-flex justify-content-between align-items-center mb-4">
+    <h5 class="mb-0 text-white">Menu Management</h5>
+  </div>
+  <div class="table-responsive">
+    <table class="admin-table">
+      <thead>
+        <tr>
+          <th>Image</th>
+          <th>Name</th>
+          <th>Category</th>
+          <th>Price</th>
+          <th>Status</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for it in items %}
+        <tr>
+          <td>
+            <img
+              src="{{ it.image and url_for('static', filename='uploads/' ~ it.image) or url_for('static', filename='img/placeholder.jpg') }}"
+              class="admin-img-thumb" alt="{{ it.name }}">
+          </td>
+          <td><span class="fw-bold">{{ it.name }}</span></td>
+          <td>{{ it.category }}</td>
+          <td>${{ '%.2f'|format(it.price) }}</td>
+          <td>
+            {% if it.availability %}
+            <span class="badge-admin badge-admin-success">Available</span>
+            {% else %}
+            <span class="badge-admin badge-admin-danger">Sold Out</span>
+            {% endif %}
+          </td>
+          <td>
+            <div class="btn-group">
+              <a class="btn btn-sm btn-outline-info" href="{{ url_for('admin_edit_menu', item_id=it.id) }}"><i
+                  class="bi bi-pencil"></i></a>
+              <a class="btn btn-sm btn-outline-danger" href="{{ url_for('admin_delete_menu', item_id=it.id) }}"
+                onclick="return confirm('Delete this item?')"><i class="bi bi-trash"></i></a>
+            </div>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<div class="row g-4 mt-4">
+  <!-- RECENT ORDERS -->
+  <div class="col-lg-6">
+    <div class="glass-card">
+      <div class="d-flex justify-content-between align-items-center mb-4">
+        <h5 class="mb-0 text-white"><i class="bi bi-bag-check me-2 text-primary"></i>Recent Orders</h5>
+        <a href="{{ url_for('admin_orders') }}" class="btn btn-sm btn-outline-light">View All</a>
+      </div>
+      <div class="list-group list-group-flush bg-transparent">
+        {% for o in orders[:8] %}
+        <div class="list-group-item bg-transparent border-secondary text-light px-0 py-3">
+          <div class="d-flex justify-content-between align-items-start">
+            <div>
+              <div class="fw-bold text-white mb-1">
+                <span class="text-primary me-2">{{ loop.index }}.</span>
+                <a href="javascript:void(0);" onclick="openOrderModal({{ o.id }})"
+                  class="text-info text-decoration-none">
+                  #{{ o.unique_order_number or o.id }}
+                </a>
+              </div>
+              <div class="small text-muted">
+                {% if o.user %}
+                <a class="text-info text-decoration-none" href="javascript:void(0);"
+                  onclick="openUserModal('{{ o.user.username }}')">@{{ o.user.username }}</a>
+                {% else %}Anon{% endif %}
+                &bull; ${{ '%.2f'|format(o.total) }}
+              </div>
+            </div>
+            <span class="badge-admin 
+              {% if o.status == 'Confirmed' %}badge-admin-success
+              {% elif o.status == 'Paid' %}badge-admin-info
+              {% else %}badge-admin-warning{% endif %}">
+              {{ o.status }}
+            </span>
+          </div>
+          <div class="small mt-2 text-muted"><i class="bi bi-clock me-1"></i>{{ o.created_at.strftime('%Y-%m-%d %H:%M')
+            }}</div>
+          <div class="mt-3">
+            {% if o.status != 'Confirmed' %}
+            <a class="btn btn-sm btn-success py-0 px-2 small"
+              href="{{ url_for('admin_confirm_order', order_id=o.id, sl=loop.index) }}">Confirm</a>
+            {% endif %}
+            <a class="btn btn-sm btn-outline-danger py-0 px-2 small"
+              href="{{ url_for('admin_delete_order', order_id=o.id, sl=loop.index) }}"
+              onclick="return confirm('Delete order?')">Delete</a>
+          </div>
+        </div>
+        {% else %}
+        <div class="text-muted small">No recent orders.</div>
+        {% endfor %}
+      </div>
+    </div>
+  </div>
+
+  <!-- RESERVATIONS -->
+  <div class="col-lg-6">
+    <div class="glass-card">
+      <div class="d-flex justify-content-between align-items-center mb-4">
+        <h5 class="mb-0 text-white"><i class="bi bi-calendar-event me-2 text-primary"></i>Reservations</h5>
+        <a href="{{ url_for('admin_reservations') }}" class="btn btn-sm btn-outline-light">View All</a>
+      </div>
+      <div class="list-group list-group-flush bg-transparent">
+        {% for r in reservations[:8] %}
+        <div class="list-group-item bg-transparent border-secondary text-light px-0 py-3">
+          <div class="d-flex justify-content-between align-items-start">
+            <div>
+              <div class="fw-bold text-white mb-1">
+                <span class="text-primary me-2">{{ loop.index }}.</span> Table {{ r.table_no }}
+              </div>
+              <div class="small text-muted">
+                {% if r.user %}
+                <a class="text-info text-decoration-none" href="javascript:void(0);"
+                  onclick="openUserModal('{{ r.user.username }}')">@{{ r.user.username }}</a>
+                {% else %}Anon{% endif %}
+                &bull; {{ r.guests }} Guests
+              </div>
+            </div>
+            <span
+              class="badge-admin {% if r.status == 'Canceled' %}badge-admin-danger{% else %}badge-admin-success{% endif %}">
+              {{ r.status }}
+            </span>
+          </div>
+          <div class="small mt-2 text-muted">
+            <i class="bi bi-calendar3 me-1"></i>{{ r.date }} &bull; <i class="bi bi-alarm me-1"></i>{{ r.time }}
+          </div>
+          <div class="mt-3">
+            {% if r.status != 'Canceled' %}
+            <a class="btn btn-sm btn-warning py-0 px-2 small"
+              href="{{ url_for('admin_cancel_reservation', res_id=r.id, sl=loop.index) }}">Cancel</a>
+            {% endif %}
+            <a class="btn btn-sm btn-outline-danger py-0 px-2 small"
+              href="{{ url_for('admin_remove_reservation', res_id=r.id, sl=loop.index) }}">Remove</a>
+          </div>
+        </div>
+        {% else %}
+        <div class="text-muted small">No reservations.</div>
+        {% endfor %}
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- MODALS -->
+<!-- (Using same logic, styling updated via admin.css/bootstrap-dark-utilities) -->
+<div class="modal fade" id="userModal" tabindex="-1">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content bg-dark-pro border-secondary text-light">
+      <div class="modal-header border-secondary">
+        <h5 class="modal-title text-white" style="color: black !important;">
+          <i class="bi bi-person-gear me-2"></i>User Profile
+        </h5>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body border-secondary">
+        <div class="text-center mb-4">
+          <img id="userImage" src="" class="rounded-circle border border-secondary p-1" width="100" height="100"
+            style="object-fit:cover;">
+        </div>
+        <div class="row g-3">
+          <div class="col-12"><label class="text-muted small" style="color: dimgray !important;">Username</label><input
+              type="text" id="userUsername" class="form-control admin-inpu" readonly></div>
+          <div class="col-md-6"><label class="text-muted small" style="color: dimgray !important;">Email</label><input
+              type="email" id="userEmail" class="form-control admin-inpu"></div>
+          <div class="col-md-6"><label class="text-muted small" style="color: dimgray !important;">Full
+              Name</label><input type="text" id="userFullName" class="form-control admin-inpu"></div>
+          <div class="col-md-6"><label class="text-muted small" style="color: dimgray !important;">Phone</label><input
+              type="text" id="userPhone" class="form-control admin-inpu"></div>
+          <div class="col-md-6"><label class="text-muted small" style="color: dimgray !important;">City</label><input
+              type="text" id="userCity" class="form-control admin-inpu"></div>
+          <div class="col-12"><label class="text-muted small" style="color: dimgray !important;">Street</label><input
+              type="text" id="userStreet" class="form-control admin-inpu"></div>
+        </div>
+      </div>
+      <div class="modal-footer border-secondary">
+        <button type="button" class="btn btn-outline-danger me-auto" onclick="deleteUser()">Delete User</button>
+        <button type="button" class="btn btn-primary" onclick="saveUser()">Save Changes</button>
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ORDER DETAIL MODAL -->
+<div class="modal fade" id="orderModal" tabindex="-1">
+  <div class="modal-dialog modal-dialog-centered modal-lg">
+    <div class="modal-content bg-dark border-secondary text-light">
+      <div class="modal-header border-secondary">
+        <h5 class="modal-title text-white"><i class="bi bi-receipt me-2"></i>Order Details</h5>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body border-secondary" id="orderModalBody">
+        <div class="text-center p-4">
+          <div class="spinner-border text-primary" role="status"></div>
+        </div>
+      </div>
+      <div class="modal-footer border-secondary">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+{% endblock %}
+
+{% block scripts %}
+<script>
+  let currentUsername = '';
+
+  function searchUser() {
+    const username = document.getElementById('searchUsername').value.trim();
+    if (!username) { alert('Please enter a username.'); return; }
+
+    fetch(`/admin/user/${username}`)
+      .then(res => { if (!res.ok) throw new Error('User not found'); return res.json(); })
+      .then(data => {
+        currentUsername = data.username;
+        document.getElementById('userUsername').value = data.username;
+        document.getElementById('userEmail').value = data.email;
+        document.getElementById('userFullName').value = data.full_name;
+        document.getElementById('userPhone').value = data.phone || '';
+        document.getElementById('userStreet').value = data.address_street || '';
+        document.getElementById('userCity').value = data.address_city || '';
+        document.getElementById('userImage').src = data.profile_image ? `/static/uploads/${data.profile_image}` : `/static/img/placeholder.jpg`;
+
+        const modal = new bootstrap.Modal(document.getElementById('userModal'));
+        modal.show();
+      })
+      .catch(err => alert(err.message));
+  }
+
+  function openUserModal(username) {
+    if (!username) return;
+    document.getElementById('searchUsername').value = username;
+    searchUser();
+  }
+
+  function saveUser() {
+    const payload = {
+      email: document.getElementById('userEmail').value.trim(),
+      full_name: document.getElementById('userFullName').value.trim(),
+      phone: document.getElementById('userPhone').value.trim(),
+      address_street: document.getElementById('userStreet').value.trim(),
+      address_city: document.getElementById('userCity').value.trim()
+    };
+
+    fetch(`/admin/user/${currentUsername}/update`, {
+      method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload)
+    })
+      .then(res => { if (!res.ok) throw new Error('Failed to update user'); return res.json(); })
+      .then(() => alert('User updated successfully!'))
+      .catch(err => alert(err.message));
+  }
+
+  function deleteUser() {
+    if (!currentUsername) return;
+    if (!confirm(`Are you sure you want to delete user "${currentUsername}"? This cannot be undone.`)) return;
+
+    fetch(`/admin/user/${currentUsername}/delete`, { method: 'POST', headers: { 'Content-Type': 'application/json' } })
+      .then(res => { if (!res.ok) throw new Error('Failed to delete user'); return res.json(); })
+      .then(() => {
+        alert('User deleted successfully!');
+        const modal = bootstrap.Modal.getInstance(document.getElementById('userModal'));
+        modal.hide();
+        document.getElementById('searchUsername').value = '';
+      })
+      .catch(err => alert(err.message));
+  }
+
+  document.getElementById("searchUsername").addEventListener("keydown", function (e) {
+    if (e.key === "Enter") { e.preventDefault(); searchUser(); }
+  });
+
+  function openOrderModal(orderId) {
+    const modal = new bootstrap.Modal(document.getElementById('orderModal'));
+    const body = document.getElementById('orderModalBody');
+    body.innerHTML = '<div class="text-center p-4"><div class="spinner-border text-primary" role="status"></div></div>';
+    modal.show();
+
+    fetch(`/admin/order/${orderId}`)
+      .then(res => { if (!res.ok) throw new Error('Order not found'); return res.json(); })
+      .then(data => {
+        let itemsHtml = data.items.map(item => `
+          <div class="d-flex justify-content-between border-bottom border-secondary py-2">
+            <span class="text-stylish">${item.name} x ${item.qty}</span>
+            <span class="text-white fw-bold">$${(item.price * item.qty).toFixed(2)}</span>
+          </div>
+        `).join('');
+
+        body.innerHTML = `
+          <div class="row g-4">
+            <div class="col-md-6">
+              <label class="text-muted small d-block mb-1">Order Status</label>
+              <span class="badge bg-${data.status === 'Confirmed' ? 'success' : 'primary'} mb-3">${data.status}</span>
+              
+              <label class="text-muted small d-block mb-1">Customer Info</label>
+              <p class="text-white mb-0 fw-bold">${data.customer}</p>
+              <p class="text-stylish small mb-2">@${data.username}</p>
+              <p class="text-white mb-3"><i class="bi bi-telephone me-2"></i>${data.phone}</p>
+              
+              <label class="text-muted small d-block mb-1">Delivery Address</label>
+              <p class="text-white small mb-0">${data.address_street}</p>
+              <p class="text-white small mb-0">${data.address_city}, ${data.address_district}</p>
+            </div>
+            <div class="col-md-6">
+              <label class="text-muted small d-block mb-3">Order Items</label>
+              <div class="bg-black bg-opacity-25 rounded p-3 mb-3">
+                ${itemsHtml}
+                <div class="d-flex justify-content-between mt-3 pt-2 border-top border-white border-opacity-25">
+                  <span class="text-white fw-bold">Total</span>
+                  <span class="text-primary fw-bold fs-5">$${data.total.toFixed(2)}</span>
+                </div>
+              </div>
+              <small class="text-muted">Placed on ${data.created_at}</small>
+            </div>
+          </div>
+        `;
+      })
+      .catch(err => {
+        body.innerHTML = `<div class="alert alert-danger">${err.message}</div>`;
+      });
+  }
+</script>
+{% endblock %}

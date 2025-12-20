@@ -1,0 +1,84 @@
+{% extends 'base.html' %}
+{% block title %}My Reservations {% endblock %}
+
+{% block content %}
+
+<div class="p-4 rounded-3 text-white"
+  style="background:linear-gradient(120deg, rgba(255,77,77,0.9), rgba(255,140,0,0.9)), url('{{ url_for('static', filename='img/mylogo') }}') center/cover;">
+  <div class="container py-5">
+    <h1 class="display-5">Delicious Food, Fast Delivery</h1>
+    <p class="lead">Explore our menu and order your favourite meals. Reserve a table or place an online order — it's
+      easy.</p>
+
+    <a class="btn btn-light btn-lg" href="{{ url_for('menu') }}">Browse Menu</a>
+    <a class="btn btn-outline-light btn-lg ms-2" href="{{ url_for('reserve') }}">Reserve Table</a>
+  </div>
+</div>
+
+
+<br> <br>
+
+
+<div class="light-mode-card p-4 rounded-3 shadow-sm mb-5 animate-on-scroll">
+  <h2 class="mb-4">My Reservations</h2>
+
+  <div class="list-group">
+    {% for r in reservations %}
+    <div class="list-group-item mb-3 rounded-3 border">
+      <div class="d-flex justify-content-between align-items-center">
+        <!-- LEFT SIDE -->
+        <div>
+          <h5 class="mb-2 fw-bold text-primary">
+            Reservation #{{ r.unique_reservation_number }}
+          </h5>
+          <h6 class="mb-1 fw-semibold">
+            <i class="bi bi-calendar-event me-2"></i>{{ r.date }} at {{ r.time }}
+          </h6>
+
+          <p class="mb-2 small">
+            <span class="me-3"><i class="bi bi-people me-1"></i> Guests: {{ r.guests }}</span>
+            <span class="me-3"><i class="bi bi-hash me-1"></i> Table: {{ r.table_no }}</span>
+            <span><i class="bi bi-clock me-1"></i> Duration: {{ r.duration }} hr{% if r.duration > 1 %}s{% endif
+              %}</span>
+          </p>
+
+          <p class="small mb-0">
+            Status:
+            {% if r.status == 'Canceled' %}
+            <span class="badge bg-danger rounded-pill">Canceled</span>
+            {% else %}
+            <span class="badge bg-success rounded-pill">Confirmed</span>
+            {% endif %}
+          </p>
+        </div>
+
+        <!-- RIGHT SIDE -->
+        <div class="text-end">
+          <div class="small text-muted mb-2">
+            Booked: {{ r.created_at.strftime('%Y-%m-%d %H:%M') }}
+          </div>
+
+          {% if r.status != 'Canceled' %}
+          <a href="{{ url_for('cancel_reservation', res_id=r.id) }}" class="btn btn-sm btn-outline-danger"
+            onclick="return confirm('Cancel this reservation?')">
+            <i class="bi bi-x-circle me-1"></i>Cancel
+          </a>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+    {% else %}
+    <div class="alert alert-light border-0 py-4 text-center">
+      <i class="bi bi-emoji-frown display-4 d-block mb-3 text-muted"></i>
+      No reservations yet.
+    </div>
+    {% endfor %}
+  </div>
+</div>
+
+
+
+
+
+
+{% endblock %}

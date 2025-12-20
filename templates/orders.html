@@ -1,0 +1,49 @@
+{% extends 'base.html' %}
+{% block title %}Orders {% endblock %}
+
+{% block content %}
+<div class="light-mode-card p-4 rounded-3 shadow-sm mb-5 animate-on-scroll">
+  <h2 class="mb-4">My Orders</h2>
+
+  <div class="list-group">
+    {% for o in orders %}
+    <div class="list-group-item list-group-item-action mb-3 rounded-3 border">
+      <div class="d-flex w-100 justify-content-between align-items-center mb-2">
+        <h5 class="mb-0 fw-bold text-primary">
+          Order #{{ loop.index }} - {{ o.unique_order_number }}
+        </h5>
+        <span class="badge bg-secondary rounded-pill">{{ o.status }}</span>
+      </div>
+
+      <div class="row">
+        <div class="col-md-8">
+          <p class="mb-1 fw-semibold text-muted small">
+            Placed on: {{ o.created_at.strftime('%Y-%m-%d %H:%M') }}
+          </p>
+          <p class="mb-2"><strong>Total:</strong> ${{ '%.2f'|format(o.total) }}</p>
+
+          <small class="text-muted d-block mb-1">Items:</small>
+          <ul class="small mb-2">
+            {% for it in o.items_parsed %}
+            <li>{{ it['qty'] }} × {{ it['name'] }} (${{ '%.2f'|format(it['price']) }})</li>
+            {% endfor %}
+          </ul>
+          <p class="small mb-0"><strong>Phone:</strong> {{ o.phone }}</p>
+        </div>
+        <div class="col-md-4 text-md-end mt-3 mt-md-0 d-flex flex-column justify-content-center">
+          <a href="{{ url_for('download_invoice', order_id=o.id) }}" class="btn btn-sm btn-primary">
+            <i class="bi bi-file-earmark-pdf me-1"></i>Invoice
+          </a>
+        </div>
+      </div>
+    </div>
+    {% else %}
+    <div class="alert alert-light border-0 py-4 text-center">
+      <i class="bi bi-bag-x display-4 d-block mb-3 text-muted"></i>
+      You have no orders yet.
+    </div>
+    {% endfor %}
+  </div>
+</div>
+
+{% endblock %}
