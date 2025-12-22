@@ -1226,13 +1226,23 @@ footer.site-footer {
 
 #notification-container {
     position: fixed;
-    bottom: 20px;
+    top: 80px;
     right: 20px;
     z-index: 10001;
     display: flex;
     flex-direction: column;
     gap: 12px;
     pointer-events: none;
+}
+
+@media (max-width: 992px) {
+    #notification-container {
+        top: auto;
+        bottom: 20px;
+        right: 20px;
+        left: 20px;
+        align-items: center;
+    }
 }
 
 .custom-notification {

@@ -250,7 +250,7 @@ body.admin-body {
 
 #notification-container {
     position: fixed;
-    top: 90px;
+    top: 80px;
     right: 20px;
     z-index: 10001;
     display: flex;
@@ -448,4 +448,11 @@ body.admin-body {
 
 .btn-cancel:hover {
     background: #444;
+}
+
+#content .navbar {
+    backdrop-filter: blur(10px);
+    background: rgba(18, 18, 18, 0.8) !important;
+    padding: 1rem 0;
+    z-index: 1000;
 }
