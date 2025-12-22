@@ -1499,6 +1499,23 @@ def admin_update_user(username):
 @admin_required
 def admin_delete_user_api(username):
     user = User.query.filter_by(username=username.lower()).first_or_404()
+    
+    # Safeguard 1: Prevent self-deletion
+    if user.id == session.get('user_id'):
+        return jsonify({
+            'success': False,
+            'message': 'You cannot delete your own account while logged in.'
+        }), 400
+        
+    # Safeguard 2: Prevent deleting the last admin
+    if user.is_admin:
+        admin_count = User.query.filter_by(is_admin=True).count()
+        if admin_count <= 1:
+            return jsonify({
+                'success': False,
+                'message': 'This is the last administrator account. You cannot delete it.'
+            }), 400
+
     email = user.email
     db.session.delete(user)
     db.session.commit()

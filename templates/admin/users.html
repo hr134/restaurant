@@ -199,7 +199,11 @@
         if (!confirmed) return;
 
         fetch(`/admin/user/${currentUsername}/delete`, { method: 'POST', headers: { 'Content-Type': 'application/json' } })
-            .then(res => { if (!res.ok) throw new Error('Failed to delete user'); return res.json(); })
+            .then(async res => {
+                const data = await res.json();
+                if (!res.ok) throw new Error(data.message || 'Failed to delete user');
+                return data;
+            })
             .then(data => {
                 showNotification('User deleted successfully.', 'success');
                 const modal = bootstrap.Modal.getInstance(document.getElementById('userModal'));
