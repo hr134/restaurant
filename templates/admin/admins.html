@@ -1,0 +1,228 @@
+{% extends 'admin/admin_base.html' %}
+
+{% block title %}Manage Admins - Admin{% endblock %}
+
+{% block admin_title %}Admin Management{% endblock %}
+
+{% block content %}
+<div class="glass-card mb-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h5 class="mb-0 text-white"><i class="bi bi-shield-lock me-2 text-primary"></i>Current Administrators</h5>
+        <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#promoteModal">
+            <i class="bi bi-plus-circle me-1"></i> Promote New Admin
+        </button>
+    </div>
+
+    <div class="table-responsive">
+        <table class="admin-table">
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Admin</th>
+                    <th>Contact</th>
+                    <th>Status</th>
+                    <th>Joined</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for admin in admins %}
+                <tr>
+                    <td>#{{ admin.id }}</td>
+                    <td>
+                        <div class="d-flex align-items-center">
+                            <img src="{{ admin.profile_image and url_for('static', filename='uploads/' ~ admin.profile_image) or url_for('static', filename='img/placeholder.jpg') }}"
+                                class="rounded-circle me-3" width="45" height="45" style="object-fit: cover;">
+                            <div>
+                                <div class="fw-bold text-white">{{ admin.username }}</div>
+                                <div class="small text-muted">{{ admin.full_name or 'No Name' }}</div>
+                            </div>
+                        </div>
+                    </td>
+                    <td>
+                        <div class="small text-white mb-1"><i class="bi bi-envelope me-1 text-primary"></i>{{
+                            admin.email }}</div>
+                        {% if admin.phone %}
+                        <div class="small text-muted"><i class="bi bi-telephone me-1"></i>{{ admin.phone }}</div>
+                        {% endif %}
+                    </td>
+                    <td>
+                        <span class="badge-admin badge-admin-success">Active Admin</span>
+                    </td>
+                    <td>
+                        <span class="small text-muted">{{ admin.created_at.strftime('%Y-%m-%d') }}</span>
+                    </td>
+                    <td>
+                        <button class="btn btn-sm btn-outline-light" onclick="openAdminView('{{ admin.username }}')">
+                            <i class="bi bi-eye"></i> View
+                        </button>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<!-- PROMOTE USER MODAL -->
+<div class="modal fade" id="promoteModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content bg-dark-pro border-secondary text-light">
+            <div class="modal-header border-secondary">
+                <h5 class="modal-title text-white"><i class="bi bi-person-plus me-2"></i>Promote User to Admin</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div class="mb-4">
+                    <label class="form-label text-muted small">Select User to Promote</label>
+                    <select id="userToPromote" class="form-select admin-inpu" onchange="loadUserPreview(this.value)">
+                        <option value="">-- Choose a User --</option>
+                        {% for user in users %}
+                        <option value="{{ user.username }}">{{ user.username }} ({{ user.full_name or 'No Name' }})
+                        </option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <div id="userPreview" style="display: none;">
+                    <div class="p-3 rounded bg-secondary-subtle border border-secondary mb-3">
+                        <h6 class="text-white mb-3">Confirm User Information:</h6>
+                        <div class="row g-2">
+                            <div class="col-12 mb-2">
+                                <label class="text-muted extra-small">Full Name</label>
+                                <div id="previewName" class="text-white fw-bold">-</div>
+                            </div>
+                            <div class="col-md-6 mb-2">
+                                <label class="text-muted extra-small">Email</label>
+                                <div id="previewEmail" class="text-white fw-bold">-</div>
+                            </div>
+                            <div class="col-md-6 mb-2">
+                                <label class="text-muted extra-small">Phone</label>
+                                <div id="previewPhone" class="text-white fw-bold">-</div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="alert alert-warning small">
+                        <i class="bi bi-exclamation-triangle me-2"></i>
+                        Promoting this user will grant them full administrative access to all dashboard features.
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer border-secondary">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" id="confirmPromoteBtn" class="btn btn-success" onclick="confirmPromotion()"
+                    disabled>
+                    Confirm Promotion
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- ADMIN VIEW MODAL (Reusing user info view) -->
+<div class="modal fade" id="adminModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content bg-dark-pro border-secondary text-light">
+            <div class="modal-header border-secondary">
+                <h5 class="modal-title"><i class="bi bi-shield-shaded me-2"></i>Admin Details</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body" id="adminModalBody">
+                <!-- Content loaded via JS -->
+            </div>
+            <div class="modal-footer border-secondary">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block scripts %}
+<script>
+    let selectedUsername = '';
+
+    function loadUserPreview(username) {
+        if (!username) {
+            document.getElementById('userPreview').style.display = 'none';
+            document.getElementById('confirmPromoteBtn').disabled = true;
+            return;
+        }
+
+        fetch(`/admin/user/${username}`)
+            .then(res => res.json())
+            .then(data => {
+                selectedUsername = data.username;
+                document.getElementById('previewName').textContent = data.full_name || 'Not provided';
+                document.getElementById('previewEmail').textContent = data.email || 'Not provided';
+                document.getElementById('previewPhone').textContent = data.phone || 'Not provided';
+
+                document.getElementById('userPreview').style.display = 'block';
+                document.getElementById('confirmPromoteBtn').disabled = false;
+            })
+            .catch(err => showNotification('Error fetching user data', 'danger'));
+    }
+
+    async function confirmPromotion() {
+        if (!selectedUsername) return;
+
+        const confirmed = await showConfirm(
+            `Propote @${selectedUsername} to Administrator? This grants full control over the system.`,
+            "Confirm Promotion",
+            "bi-shield-check"
+        );
+
+        if (confirmed) {
+            fetch(`/admin/user/${selectedUsername}/promote`, { method: 'POST' })
+                .then(res => res.json())
+                .then(data => {
+                    if (data.success) {
+                        showNotification(data.message, 'success');
+                        setTimeout(() => location.reload(), 1000);
+                    } else {
+                        showNotification(data.message, 'danger');
+                    }
+                })
+                .catch(err => showNotification('Promotion failed', 'danger'));
+        }
+    }
+
+    function openAdminView(username) {
+        // Reuse the logic from users page
+        fetch(`/admin/user/${username}`)
+            .then(res => res.json())
+            .then(data => {
+                const body = document.getElementById('adminModalBody');
+                body.innerHTML = `
+                    <div class="text-center mb-4">
+                        <img src="${data.profile_image ? '/static/uploads/' + data.profile_image : '/static/img/placeholder.jpg'}" 
+                             class="rounded-circle border border-primary p-1" width="100" height="100" style="object-fit:cover;">
+                    </div>
+                    <div class="row g-3">
+                        <div class="col-md-6"><label class="text-muted small">Username</label><div class="text-white">@${data.username}</div></div>
+                        <div class="col-md-6"><label class="text-muted small">Full Name</label><div class="text-white">${data.full_name || '-'}</div></div>
+                        <div class="col-md-12"><label class="text-muted small">Email</label><div class="text-white">${data.email}</div></div>
+                        <div class="col-md-6"><label class="text-muted small">Phone</label><div class="text-white">${data.phone || '-'}</div></div>
+                        <div class="col-md-6"><label class="text-muted small">Member ID</label><div class="text-white">${data.member_id || '-'}</div></div>
+                    </div>
+                `;
+                const modal = new bootstrap.Modal(document.getElementById('adminModal'));
+                modal.show();
+            });
+    }
+</script>
+
+<style>
+    .extra-small {
+        font-size: 0.7rem;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        display: block;
+    }
+
+    .bg-secondary-subtle {
+        background: rgba(255, 255, 255, 0.05);
+    }
+</style>
+{% endblock %}

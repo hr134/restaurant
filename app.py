@@ -1273,6 +1273,15 @@ def admin_users():
     return render_template('admin/users.html', users=users)
 
 
+@app.route('/admin/admins')
+@admin_required
+def admin_admins():
+    admins = User.query.filter_by(is_admin=True).order_by(User.id.desc()).all()
+    # We need to fetch all users for the "Promote" search functionality
+    users = User.query.filter_by(is_admin=False).order_by(User.username).all()
+    return render_template('admin/admins.html', admins=admins, users=users)
+
+
 @app.route('/admin/orders')
 @admin_required
 def admin_orders():
@@ -1424,9 +1433,6 @@ def admin_remove_reservation(res_id):
     db.session.delete(res)
     db.session.commit()
     
-    db.session.delete(res)
-    db.session.commit()
-    
     flash('Reservation removed.', 'success')
     
     if email_status == "pending":
@@ -1531,6 +1537,29 @@ def admin_delete_user_api(username):
         'email_status': email_status,
         'email': email
     })
+
+@app.route('/admin/user/<username>/promote', methods=['POST'])
+@admin_required
+def admin_promote_user_api(username):
+    user = User.query.filter_by(username=username.lower()).first_or_404()
+    if user.is_admin:
+        return jsonify({'success': False, 'message': 'User is already an administrator.'}), 400
+    
+    user.is_admin = True
+    db.session.commit()
+    
+    # Notify User
+    email_status = False
+    if user.email:
+        email_status = send_email("Role Upgraded - Administrator", user.email, 
+                   f"Hello {user.username},\n\nCongratulations! Your account has been promoted to Administrator. You now have full access to the Finedine Management Panel.\n\nRegards,\nFinedine Team")
+        
+    return jsonify({
+        'success': True,
+        'message': f'@{user.username} has been promoted to Administrator.',
+        'email_status': email_status
+    })
+
 
 @app.route('/admin/order/<int:order_id>')
 @admin_required
