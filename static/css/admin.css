@@ -113,6 +113,11 @@ body.admin-body {
     margin-bottom: 20px;
 }
 
+.bg-dark-pro {
+    background-color: #1a1a1a !important;
+    border: 1px solid var(--border-whitish);
+}
+
 /* Standardize Menu Image Sizes */
 .admin-img-thumb {
     width: 70px;
