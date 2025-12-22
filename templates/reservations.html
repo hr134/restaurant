@@ -48,6 +48,8 @@
             Status:
             {% if r.status == 'Canceled' %}
             <span class="badge bg-danger rounded-pill">Canceled</span>
+            {% elif r.status == 'Pending' %}
+            <span class="badge bg-warning text-dark rounded-pill">Pending</span>
             {% else %}
             <span class="badge bg-success rounded-pill">Confirmed</span>
             {% endif %}

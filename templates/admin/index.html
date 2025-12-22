@@ -183,7 +183,7 @@
               </div>
             </div>
             <span
-              class="badge-admin {% if r.status == 'Canceled' %}badge-admin-danger{% else %}badge-admin-success{% endif %}">
+              class="badge-admin {% if r.status == 'Canceled' %}badge-admin-danger{% elif r.status == 'Pending' %}badge-admin-warning{% else %}badge-admin-success{% endif %}">
               {{ r.status }}
             </span>
           </div>
