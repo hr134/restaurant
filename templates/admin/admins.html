@@ -85,7 +85,7 @@
                 </div>
 
                 <div id="userPreview" style="display: none;">
-                    <div class="p-3 rounded bg-secondary-subtle border border-secondary mb-3">
+                    <div class="p-3 rounded admin-preview-box border border-secondary mb-3">
                         <h6 class="text-white mb-3">Confirm User Information:</h6>
                         <div class="row g-2">
                             <div class="col-12 mb-2">
@@ -221,8 +221,20 @@
         display: block;
     }
 
-    .bg-secondary-subtle {
-        background: rgba(255, 255, 255, 0.05);
+    .admin-preview-box {
+        background: #2a2a2a !important;
+        border: 1px solid rgba(255, 255, 255, 0.1) !important;
+        color: #ffffff !important;
+    }
+
+    .admin-preview-box div,
+    .admin-preview-box label,
+    .admin-preview-box h6 {
+        color: #ffffff !important;
+    }
+
+    .admin-preview-box label.text-muted {
+        color: rgba(255, 255, 255, 0.6) !important;
     }
 </style>
 {% endblock %}
