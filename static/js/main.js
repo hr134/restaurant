@@ -105,9 +105,17 @@ document.addEventListener("DOMContentLoaded", () => {
     // ------------------------------------------------
     const loader = document.getElementById('page-loader');
     if (loader) {
+        // Initial hide
         setTimeout(() => {
             loader.classList.add('fade-out');
         }, 100);
+
+        // Fix for "White Screen" on back/forward navigation
+        window.addEventListener('pageshow', (event) => {
+            if (event.persisted) {
+                loader.classList.add('fade-out');
+            }
+        });
     }
 
     // Intercept link clicks for smooth fade-out
