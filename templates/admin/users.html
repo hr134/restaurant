@@ -1,0 +1,212 @@
+{% extends 'admin/admin_base.html' %}
+
+{% block title %}Users - Admin{% endblock %}
+
+{% block admin_title %}User Management{% endblock %}
+
+{% block content %}
+<div class="glass-card">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h5 class="mb-0 text-white">Registered Users</h5>
+        <span class="badge badge-admin-info">{{ users|length }} Users</span>
+    </div>
+
+    <div class="table-responsive">
+        <table class="admin-table">
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>User</th>
+                    <th>Contact</th>
+                    <th>Role</th>
+                    <th>Status</th>
+                    <th>Joined</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for user in users %}
+                <tr>
+                    <td>#{{ user.id }}</td>
+                    <td>
+                        <div class="d-flex align-items-center">
+                            <img src="{{ user.profile_image and url_for('static', filename='uploads/' ~ user.profile_image) or url_for('static', filename='img/placeholder.jpg') }}"
+                                class="rounded-circle me-2" width="40" height="40" style="object-fit: cover;">
+                            <div>
+                                <div class="fw-bold text-white">{{ user.username }}</div>
+                                <div class="small text-muted">{{ user.full_name or 'No Name' }}</div>
+                            </div>
+                        </div>
+                    </td>
+                    <td>
+                        <div class="small text-white mb-1"><i class="bi bi-envelope me-1 text-primary"></i>{{ user.email
+                            }}</div>
+                        {% if user.phone %}
+                        <div class="small text-muted"><i class="bi bi-telephone me-1"></i>{{ user.phone }}</div>
+                        {% endif %}
+                    </td>
+                    <td>
+                        {% if user.is_admin %}
+                        <span class="badge-admin badge-admin-success">Admin</span>
+                        {% else %}
+                        <span class="badge-admin badge-admin-info">User</span>
+                        {% endif %}
+                    </td>
+                    <td>
+                        {% if user.email_verified %}
+                        <span class="badge bg-success rounded-pill small">Verified</span>
+                        {% else %}
+                        <span class="badge bg-warning text-dark rounded-pill small">Unverified</span>
+                        {% endif %}
+                    </td>
+                    <td>
+                        <span class="small text-muted">{{ user.created_at.strftime('%Y-%m-%d') }}</span>
+                    </td>
+                    <td>
+                        <button class="btn btn-sm btn-outline-light" onclick="openUserModal('{{ user.username }}')">
+                            <i class="bi bi-eye"></i> View
+                        </button>
+                    </td>
+                </tr>
+                {% else %}
+                <tr>
+                    <td colspan="7" class="text-center py-4 text-muted">No users found.</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<!-- Modal Logic Reused from index.html via script below -->
+<!-- We need to ensure the modal exists in admin_base or here. 
+     Currently userModal is in index.html. Ideally it should be in admin_base or included.
+     However, to avoid refactoring index.html too much, I'll copy the minimal modal structure here or move it to base.
+     Actually, looking at admin_base.html, it doesn't have the userModal. 
+     index.html has it. I should verify if I can easily move it or just duplicate/include it.
+     For safety and standard practice, I will include the modal markup here as well since it's local to the view logic usually.
+-->
+
+<!-- USER DETAIL MODAL -->
+<div class="modal fade" id="userModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content bg-dark-pro border-secondary text-light">
+            <div class="modal-header border-secondary">
+                <h5 class="modal-title text-white" style="color: black !important;">
+                    <i class="bi bi-person-gear me-2"></i>User Profile
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body border-secondary">
+                <div class="text-center mb-4">
+                    <img id="userImage" src="" class="rounded-circle border border-secondary p-1" width="100"
+                        height="100" style="object-fit:cover;">
+                </div>
+                <div class="row g-3">
+                    <div class="col-12"><label class="text-muted small"
+                            style="color: dimgray !important;">Username</label><input type="text" id="userUsername"
+                            class="form-control admin-inpu" readonly></div>
+                    <div class="col-md-6">
+                        <label class="text-muted small" style="color: dimgray !important;">
+                            Email
+                            <span id="userVerifiedBadge"></span>
+                        </label>
+                        <input type="email" id="userEmail" class="form-control admin-inpu">
+                    </div>
+                    <div class="col-md-6"><label class="text-muted small" style="color: dimgray !important;">Full
+                            Name</label><input type="text" id="userFullName" class="form-control admin-inpu"></div>
+                    <div class="col-md-6"><label class="text-muted small"
+                            style="color: dimgray !important;">Phone</label><input type="text" id="userPhone"
+                            class="form-control admin-inpu"></div>
+                    <div class="col-md-6"><label class="text-muted small"
+                            style="color: dimgray !important;">City</label><input type="text" id="userCity"
+                            class="form-control admin-inpu"></div>
+                    <div class="col-12"><label class="text-muted small"
+                            style="color: dimgray !important;">Street</label><input type="text" id="userStreet"
+                            class="form-control admin-inpu"></div>
+                </div>
+            </div>
+            <div class="modal-footer border-secondary">
+                <button type="button" class="btn btn-outline-danger me-auto" onclick="deleteUser()">Delete User</button>
+                <button type="button" class="btn btn-primary" onclick="saveUser()">Save Changes</button>
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    let currentUsername = '';
+
+    // Reuse the logic from index.html (encapsulated here for Users page)
+    function openUserModal(username) {
+        if (!username) return;
+
+        // We can reuse the same endpoint /admin/user/<username>
+        fetch(`/admin/user/${username}`)
+            .then(res => { if (!res.ok) throw new Error('User not found'); return res.json(); })
+            .then(data => {
+                currentUsername = data.username;
+                document.getElementById('userUsername').value = data.username;
+                document.getElementById('userEmail').value = data.email;
+                document.getElementById('userFullName').value = data.full_name;
+                document.getElementById('userPhone').value = data.phone || '';
+                document.getElementById('userStreet').value = data.address_street || '';
+                document.getElementById('userCity').value = data.address_city || '';
+                document.getElementById('userImage').src = data.profile_image ? `/static/uploads/${data.profile_image}` : `/static/img/placeholder.jpg`;
+
+                const badge = document.getElementById('userVerifiedBadge');
+                if (data.email_verified) {
+                    badge.innerHTML = '<span class="badge bg-success small ms-2" style="font-size: 0.6rem;">VERIFIED</span>';
+                } else {
+                    badge.innerHTML = '<span class="badge bg-warning text-dark small ms-2" style="font-size: 0.6rem;">UNVERIFIED</span>';
+                }
+
+                const modal = new bootstrap.Modal(document.getElementById('userModal'));
+                modal.show();
+            })
+            .catch(err => showNotification(err.message, 'danger'));
+    }
+
+    function saveUser() {
+        const payload = {
+            email: document.getElementById('userEmail').value.trim(),
+            full_name: document.getElementById('userFullName').value.trim(),
+            phone: document.getElementById('userPhone').value.trim(),
+            address_street: document.getElementById('userStreet').value.trim(),
+            address_city: document.getElementById('userCity').value.trim()
+        };
+
+        fetch(`/admin/user/${currentUsername}/update`, {
+            method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload)
+        })
+            .then(res => { if (!res.ok) throw new Error('Failed to update user'); return res.json(); })
+            .then(data => {
+                let msg = 'User updated successfully!';
+                if (data.email_status === false && data.email) {
+                    msg += ` (Note: Email couldn't be sent to ${data.email})`;
+                }
+                showNotification(msg, 'success');
+            })
+            .catch(err => showNotification(err.message, 'danger'));
+    }
+
+    async function deleteUser() {
+        if (!currentUsername) return;
+        const confirmed = await showConfirm(`Are you sure you want to delete user "${currentUsername}"?`, "Delete User", "bi-person-x");
+        if (!confirmed) return;
+
+        fetch(`/admin/user/${currentUsername}/delete`, { method: 'POST', headers: { 'Content-Type': 'application/json' } })
+            .then(res => { if (!res.ok) throw new Error('Failed to delete user'); return res.json(); })
+            .then(data => {
+                showNotification('User deleted successfully.', 'success');
+                const modal = bootstrap.Modal.getInstance(document.getElementById('userModal'));
+                modal.hide();
+                setTimeout(() => location.reload(), 1000);
+            })
+            .catch(err => showNotification(err.message, 'danger'));
+    }
+</script>
+{% endblock %}

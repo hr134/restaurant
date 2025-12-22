@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Invoice #{{ order.id }}</title>
+
+    <style>
+        body {
+            font-family: Arial, Helvetica, sans-serif;
+            margin: 40px;
+            color: #333;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 25px;
+        }
+
+        .header h1 {
+            margin: 0;
+            font-size: 28px;
+            font-weight: bold;
+            color: #444;
+        }
+
+        .header p {
+            margin: 2px;
+            font-size: 14px;
+        }
+
+        .section-title {
+            font-size: 18px;
+            margin-top: 25px;
+            margin-bottom: 10px;
+            font-weight: bold;
+            color: #222;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 10px;
+        }
+
+        table th {
+            text-align: left;
+            background: #f2f2f2;
+            padding: 10px;
+            border-bottom: 2px solid #ccc;
+        }
+
+        table td {
+            padding: 8px;
+            border-bottom: 1px solid #eee;
+        }
+
+        .total-box {
+            text-align: right;
+            margin-top: 20px;
+            font-size: 20px;
+            font-weight: bold;
+            color: #000;
+        }
+
+        /* .footer {
+            text-align: center;
+            margin-top: 50px;
+            font-size: 14px;
+            color: #777;
+        }
+
+        .thank-you {
+            margin-top: 120px;
+            text-align: center;
+            font-size: 22px;
+            font-weight: bold;
+            color: #088412;
+        } */
+
+        /* Order status badge */
+        .status {
+            display: inline-block;
+            padding: 5px 15px;
+            border-radius: 15px;
+            font-weight: bold;
+            color: #000000;
+            font-size: 14px;
+        }
+
+        /* .status.pending {
+            background-color: #f39c12; 
+        }
+
+        .status.paid {
+            background-color: #27ae60; 
+        }
+
+        .status.confirmed {
+            background-color: #2980b9; 
+        } */
+
+    </style>
+</head>
+<body>
+
+    <!-- Header -->
+    <div class="header">
+        <h1>Restaurant Invoice</h1>
+        <p>4 Embankment Drive Road, Uttara</p>
+        <p>Phone: +8801955850512</p>
+        <p>Date: {{ order.created_at.strftime('%Y-%m-%d %H:%M') }}</p>
+    </div>
+
+    <!-- Customer Info -->
+    <div>
+        <div class="section-title">Customer Details</div>
+        <p><strong>Name:</strong> {{ order.user.full_name }}</p>
+        <p><strong>Phone:</strong> {{ order.phone }}</p>
+        <p><strong>Address:</strong> 
+            {{ order.address_street }}, 
+            {{ order.address_city }}, 
+            {{ order.address_district }}
+        </p>
+        <p><strong>Order Status:</strong> 
+            <span class="status {{ order.statustk|lower }}">
+                {{ order.status }}
+            </span>
+        </p>
+    </div>
+
+    <!-- Order Items -->
+    <div>
+        <div class="section-title">Order Summary</div>
+
+        <table>
+            <tr>
+                <th>Item</th>
+                <th>Qty</th>
+                <th>Price ($)</th>
+                <th>Total</th>
+            </tr>
+
+            {% for it in order.items_parsed %}
+            <tr>
+                <td>{{ it.name }}</td>
+                <td>{{ it.qty }}</td>
+                <td>{{ "%.2f" | format(it.price) }}</td>
+                <td>{{ "%.2f" | format(it.price * it.qty) }}</td>
+            </tr>
+            {% endfor %}
+        </table>
+    </div>
+
+    <!-- Total -->
+    <p class="total-box">
+        Grand Total: {{ "%.2f" | format(order.total) }} $
+    </p>
+
+    <!-- Footer -->
+    <!-- <div class="thank-you">Thank you for your order!</div> -->
+
+
+</body>
+</html>

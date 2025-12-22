@@ -1,0 +1,61 @@
+{% extends 'admin/admin_base.html' %}
+
+{% block title %}Sales Report - Admin{% endblock %}
+
+{% block admin_title %}Detailed Sales Report{% endblock %}
+
+{% block content %}
+<div class="row g-4">
+  <div class="col-md-4">
+    <div class="glass-card text-center py-4">
+      <div class="text-muted small mb-1">Total Revenue</div>
+      <h2 class="text-white mb-0">${{ '%.2f'|format(total_sales or 0) }}</h2>
+      <div class="mt-2 small text-success"><i class="bi bi-arrow-up"></i> Lifetime</div>
+    </div>
+  </div>
+
+  <div class="col-md-8">
+    <div class="glass-card">
+      <h5 class="text-white mb-4"><i class="bi bi-star me-2 text-warning"></i>Popular Dishes</h5>
+      <div class="table-responsive">
+        <table class="admin-table">
+          <thead>
+            <tr>
+              <th>Dish Name</th>
+              <th>Orders Count</th>
+              <th>Food Points</th>
+              <th>Avg Rating</th>
+              <th>Popularity</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for dish in popular %}
+            <tr>
+              <td><span class="fw-bold text-white">{{ dish.name }}</span></td>
+              <td>{{ dish.count }}</td>
+              <td><span class="badge bg-warning text-dark">{{ dish.total_points }} pts</span></td>
+              <td>
+                <span class="text-warning">
+                  <i class="bi bi-star-fill me-1"></i>{{ dish.avg_rating }}
+                </span>
+              </td>
+              <td>
+                <div class="progress bg-dark" style="height: 8px;">
+                  {% set max_count = popular[0].count if popular else 1 %}
+                  {% set percent = (dish.count / max_count) * 100 %}
+                  <div class="progress-bar bg-primary" role="progressbar" style="width: {{ percent }}%"></div>
+                </div>
+              </td>
+            </tr>
+            {% else %}
+            <tr>
+              <td colspan="3" class="text-center text-muted">No sales data available.</td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

@@ -1,0 +1,64 @@
+{% extends 'admin/admin_base.html' %}
+
+{% block title %}Add Menu Item - Admin{% endblock %}
+
+{% block admin_title %}Add New Menu Item{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+  <div class="col-lg-8">
+    <div class="glass-card shadow-lg">
+      <form method="post" enctype="multipart/form-data">
+        <div class="mb-4">
+          <label class="form-label text-muted small uppercase">Item Name</label>
+          <input name="name" class="form-control admin-input" placeholder="e.g. Traditional Margherita" required>
+        </div>
+
+        <div class="row g-4 mb-4">
+          <div class="col-md-6">
+            <label class="form-label text-muted small uppercase">Price ($)</label>
+            <div class="input-group">
+              <span class="input-group-text bg-transparent border-secondary text-muted">$</span>
+              <input name="price" type="number" step="0.01" class="form-control admin-input border-start-0"
+                placeholder="0.00" required>
+            </div>
+          </div>
+          <div class="col-md-6">
+            <label class="form-label text-muted small uppercase">Category</label>
+            <input name="category" class="form-control admin-input" placeholder="e.g. Main Course">
+          </div>
+        </div>
+
+        <div class="mb-4">
+          <label class="form-label text-muted small uppercase">Ingredients</label>
+          <textarea name="ingredients" class="form-control admin-input" rows="3"
+            placeholder="List ingredients separated by commas..."></textarea>
+        </div>
+
+        <div class="mb-4">
+          <label class="form-label text-muted small uppercase">Item Image</label>
+          <div class="input-group border border-secondary rounded-3 overflow-hidden bg-dark">
+            <input type="file" name="image" accept="image/*"
+              class="form-control bg-transparent border-0 text-light p-2">
+          </div>
+          <div class="text-muted extra-small mt-2"><i class="bi bi-info-circle me-1"></i>Supports JPG, PNG formats.
+            High-resolution images recommended.</div>
+        </div>
+
+        <div class="mb-4 form-check bg-dark-pro p-3 rounded border border-secondary">
+          <div class="ms-2">
+            <input type="checkbox" class="form-check-input" name="availability" id="availableChk" checked>
+            <label class="form-check-label text-white ms-2" for="availableChk">Make this item available on the menu
+              immediately</label>
+          </div>
+        </div>
+
+        <div class="d-flex align-items-center gap-3">
+          <button class="btn btn-primary px-4 py-2"><i class="bi bi-plus-lg me-2"></i>Create Item</button>
+          <a class="btn btn-outline-light px-4 py-2" href="{{ url_for('admin_index') }}">Cancel</a>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+{% endblock %}

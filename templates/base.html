@@ -1,0 +1,546 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>{% block title %}Finedine♡𓌉◯𓇋₊˚{% endblock %}</title>
+  <meta name="description"
+    content="Experience delicious food and fast delivery with Finedine♡𓌉◯𓇋₊˚. Order online or reserve a table today.">
+  <meta name="keywords" content="restaurant, food delivery, reservation, dining, delicious meals">
+  <meta property="og:title" content="Finedine♡𓌉◯𓇋₊˚ - Delicious Food, Fast Delivery">
+  <meta property="og:description"
+    content="Order your favorite meals or book a table at Finedine♡𓌉◯𓇋₊˚. Fresh ingredients, great taste.">
+  <meta property="og:type" content="website">
+  <meta property="og:image" content="{{ url_for('static', filename='img/pizza.jpg') }}">
+
+  <link rel="shortcut icon" href="/static/img/mylogo.png">
+
+  <!-- Bootstrap 5 -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+
+  <!-- Google Fonts (Only used for Chatbot now) -->
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+  <!-- Bootstrap Icons -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+
+  <!-- Main Custom CSS -->
+  <link href="{{ url_for('static', filename='css/main.css') }}" rel="stylesheet">
+
+  <script>
+    // Prevent white flash by applying theme instantly
+    (function () {
+      const savedTheme = localStorage.getItem("theme");
+      if (savedTheme === "dark") {
+        document.documentElement.setAttribute("data-theme", "dark");
+      }
+    })();
+  </script>
+
+  {% block head %}{% endblock %}
+</head>
+
+<body class="d-flex flex-column min-vh-100">
+
+  <!-- PAGE TRANSITION OVERLAY -->
+  <div id="page-loader"></div>
+
+  <!-- NOTIFICATION CONTAINER -->
+  <div id="notification-container"></div>
+
+  <!-- Premium Confirm Modal -->
+  <div id="premium-confirm-overlay" class="premium-modal-overlay">
+    <div class="premium-modal">
+      <div id="confirm-icon" class="premium-modal-icon">
+        <i class="bi bi-question-circle"></i>
+      </div>
+      <div id="confirm-title" class="premium-modal-title">Are you sure?</div>
+      <div id="confirm-body" class="premium-modal-body">Do you really want to proceed with this action?</div>
+      <div class="premium-modal-footer">
+        <button id="confirm-cancel-btn" class="premium-modal-btn btn-cancel">Cancel</button>
+        <button id="confirm-ok-btn" class="premium-modal-btn btn-confirm">Confirm</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- CUSTOM CURSOR -->
+  <div class="cursor-dot"></div>
+  <div class="cursor-outline"></div>
+
+  <nav class="navbar navbar-expand-lg navbar-light bg-white border-bottom">
+
+
+    <div class="container">
+
+
+      <a class="navbar-brand nav-brand" href="{{ url_for('index') }}">Finedine♡𓌉◯𓇋₊˚</a>
+      <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navCollapse">
+        <span class="navbar-toggler-icon"></span>
+      </button>
+
+
+
+      <div class="collapse navbar-collapse" id="navCollapse">
+        <ul class="navbar-nav ms-auto align-items-center">
+
+          <li class="nav-item"><a class="nav-link" href="{{ url_for('menu') }}">Menu</a></li>
+          <li class="nav-item">
+            <a class="nav-link" href="{{ url_for('cart') }}">
+              Cart (<span id="cart-count">{{ cart_count }}</span>)
+            </a>
+          </li>
+
+          <!-- <li class="nav-item"><a class="nav-link" href="{{ url_for('chat') }}">Chat</a></li> -->
+
+          {% if session.get('username') %}
+          <li class="nav-item"><a class="nav-link" href="{{ url_for('orders') }}">My Orders</a></li>
+          <li class="nav-item"><a class="nav-link" href="{{ url_for('reservations') }}">Reservations</a></li>
+          <li class="nav-item"><a class="nav-link" href="{{ url_for('profile') }}">Profile</a></li>
+
+          {% if session.get('is_admin') %}
+          <li class="nav-item"><a class="nav-link" href="{{ url_for('admin_index') }}">Admin</a></li>
+          {% endif %}
+
+          <li class="nav-item"><span class="nav-link disabled">Hi, {{ session.get('username') }}</span></li>
+          <li class="nav-item"><a class="nav-link" href="{{ url_for('logout') }}">Logout</a></li>
+
+          {% else %}
+          <li class="nav-item"><a class="nav-link" href="{{ url_for('login') }}">Login</a></li>
+          <li class="nav-item"><a class="nav-link" href="{{ url_for('register') }}">Register</a></li>
+          {% endif %}
+
+          <li class="nav-item ms-2">
+            <button id="theme-toggle" class="btn btn-sm btn-outline-secondary rounded-circle"
+              style="width: 38px; height: 38px; padding: 0;">
+              <i class="bi bi-moon-stars-fill"></i>
+            </button>
+          </li>
+
+        </ul>
+      </div>
+    </div>
+  </nav>
+
+  <main class="container my-4">
+    {% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+    <script>
+      document.addEventListener('DOMContentLoaded', () => {
+        {% for category, message in messages %}
+        showNotification("{{ message }}", "{{ 'success' if category == 'success' else 'danger' if category == 'error' or category == 'danger' else 'warning' if category == 'warning' else 'primary' }}");
+        {% endfor %}
+      });
+    </script>
+    {% endif %}
+    {% endwith %}
+
+    {% block content %}{% endblock %}
+  </main>
+
+  <footer class="site-footer mt-auto py-5">
+    <div class="container text-center">
+      <div class="secret-dish-wrap mb-4">
+        <div class="track-container mx-auto" id="footer-tracker">
+          <div class="track-ui">
+            <div class="track-ui__text text-enabled">
+              <div class="track-ui__text-title">
+                <span class="msg-1">Secret Magic...</span>
+                <span class="msg-2">Unleash your darkness</span>
+              </div>
+            </div>
+            <div class="track-ui__text text-disabled">
+              <div class="track-ui__text-title">Find your Recipe!</div>
+            </div>
+
+            <div class="track-ui__spell tracker">
+              <input class="track-ui__spell-source" id="spell-switch" type="checkbox" />
+              <div class="track-ui__spell-circle"></div>
+            </div>
+
+            <div class="track-ui__char" id="dish-char">
+              <div class="track-ui__char-shadow"></div>
+              <label class="track-ui__char-ball" for="spell-switch">
+                <i class="bi bi-egg-fried text-white"
+                  style="font-size: 1.5rem; display: flex; align-items: center; justify-content: center; height: 100%;"></i>
+              </label>
+            </div>
+          </div>
+        </div>
+      </div>
+      <small class="text-muted d-block mb-2">© 2025 Finedine | Premium Dining Experience</small>
+      <div class="footer-links">
+        <a href="#" class="text-muted mx-2 small text-decoration-none">Terms</a>
+        <a href="#" class="text-muted mx-2 small text-decoration-none">Privacy</a>
+      </div>
+    </div>
+  </footer>
+
+
+
+  <!-- FLOATING CHAT BUTTON -->
+  <div id="chatbot-btn">💬</div>
+
+  <!-- CHATBOT POPUP -->
+  <div id="chatbot-window" class="light-mode-card">
+    <div class="chat-header">
+      AI Assistant
+      <span id="chatbot-close" style="cursor: pointer;">✖</span>
+    </div>
+
+    <div id="chat-box" class="chat-box"></div>
+
+    <div class="chat-input-sec">
+      <input type="text" id="chat-input" placeholder="Ask something...">
+      <button id="chat-send">Send</button>
+
+      <!-- Mode selector removed -->
+    </div>
+  </div>
+
+
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+
+  <script>
+    // Premium Notification System
+    function showNotification(message, type = 'primary') {
+      const container = document.getElementById('notification-container');
+      const toast = document.createElement('div');
+      toast.className = `custom-notification ${type}`;
+
+      const icon = type === 'success' ? 'bi-check-circle-fill' :
+        type === 'danger' ? 'bi-exclamation-triangle-fill' :
+          type === 'warning' ? 'bi-exclamation-circle-fill' : 'bi-info-circle-fill';
+
+      toast.innerHTML = `
+        <i class="bi ${icon}"></i>
+        <div class="notif-content">${message}</div>
+      `;
+
+      container.appendChild(toast);
+
+      // Auto-remove after 4 seconds
+      setTimeout(() => {
+        toast.classList.add('hide');
+        setTimeout(() => toast.remove(), 500);
+      }, 4000);
+    }
+
+    // Override Alert
+    window.alert = (msg) => showNotification(msg, 'primary');
+
+    function addChatMessage(text, sender) {
+      const box = document.getElementById("chat-box");
+      const div = document.createElement("div");
+
+      div.classList.add("message");
+      div.classList.add(sender === "user" ? "user-message" : "bot-message");
+      div.textContent = text;
+
+      box.appendChild(div);
+      box.scrollTop = box.scrollHeight;
+    }
+
+    async function handlePremiumConfirm(event, message, target, title = "Confirm Action", icon = "bi-question-circle") {
+      if (event) event.preventDefault();
+      const targetUrl = target.href;
+      const confirmed = await showConfirm(message, title, icon);
+      if (confirmed) {
+        window.location.href = targetUrl;
+      }
+    }
+
+    async function showConfirm(message, title = "Confirm Action", iconClass = "bi-question-circle") {
+      return new Promise((resolve) => {
+        const overlay = document.getElementById('premium-confirm-overlay');
+        const titleEl = document.getElementById('confirm-title');
+        const bodyEl = document.getElementById('confirm-body');
+        const iconEl = document.getElementById('confirm-icon');
+        const okBtn = document.getElementById('confirm-ok-btn');
+        const cancelBtn = document.getElementById('confirm-cancel-btn');
+
+        titleEl.textContent = title;
+        bodyEl.textContent = message;
+        iconEl.innerHTML = `<i class="bi ${iconClass}"></i>`;
+
+        overlay.classList.add('show');
+
+        const cleanup = (result) => {
+          overlay.classList.remove('show');
+          okBtn.onclick = null;
+          cancelBtn.onclick = null;
+          resolve(result);
+        };
+
+        okBtn.onclick = () => cleanup(true);
+        cancelBtn.onclick = () => cleanup(false);
+      });
+    }
+
+    // Override window.confirm
+    window.originalConfirm = window.confirm;
+    window.confirm = (msg) => {
+      // Note: This won't work for simple synchronous scripts expectation 
+      // but for our async action links we will use showConfirm directly.
+      console.warn("Synchronous confirm() called. Use await showConfirm() for best results.");
+      return window.originalConfirm(msg);
+    };
+
+    async function rateItem(itemId, score) {
+      try {
+        const response = await fetch('/api/rate', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ item_id: itemId, score: score })
+        });
+        const data = await response.json();
+
+        if (response.status === 401) {
+          showNotification(data.message, 'danger');
+          return;
+        }
+
+        if (data.success) {
+          showNotification(data.message, 'success');
+
+          // Update stars in the UI
+          const ratingContainer = document.querySelector(`.star-rating[data-item-id="${itemId}"]`);
+          if (ratingContainer) {
+            const stars = ratingContainer.querySelectorAll('i');
+            stars.forEach((star, index) => {
+              if (index < score) {
+                star.classList.add('bi-star-fill', 'active');
+                star.classList.remove('bi-star');
+              } else {
+                star.classList.add('bi-star');
+                star.classList.remove('bi-star-fill', 'active');
+              }
+            });
+            const text = ratingContainer.querySelector('.rating-text');
+            if (text) text.textContent = `(${data.average})`;
+          }
+        } else {
+          showNotification(data.message, 'danger');
+        }
+      } catch (error) {
+        console.error('Error rating item:', error);
+        showNotification('Something went wrong. Please try again.', 'danger');
+      }
+    }
+
+    async function sendChatMessage() {
+      const text = document.getElementById("chat-input").value.trim();
+      if (!text) return;
+
+      addChatMessage(text, "user");
+      document.getElementById("chat-input").value = "";
+
+      // Add loading mechanism
+      const box = document.getElementById("chat-box");
+      const loadingDiv = document.createElement("div");
+      loadingDiv.classList.add("message", "bot-message");
+      loadingDiv.textContent = "...";
+      box.appendChild(loadingDiv);
+      box.scrollTop = box.scrollHeight;
+
+      try {
+        const res = await fetch("/api/chat", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ message: text })
+        });
+
+        const data = await res.json();
+        box.removeChild(loadingDiv);
+
+        // Render simple text response with basic formatting
+        let answer = data.answer;
+        if (answer) {
+          answer = answer.replace(/\n/g, '<br>');
+          const div = document.createElement("div");
+          div.classList.add("message", "bot-message");
+          div.innerHTML = answer;
+          box.appendChild(div);
+        }
+
+        // Handle Redirection
+        if (data.redirect) {
+          setTimeout(() => {
+            window.location.href = data.redirect;
+          }, 1500); // 1.5s delay so user can read the message
+          return; // Stop further rendering if redirecting
+        }
+
+        // Render Options
+        if (data.options && data.options.length > 0) {
+          const optionsDiv = document.createElement("div");
+          optionsDiv.classList.add("message", "bot-message");
+          optionsDiv.style.background = "transparent";
+          optionsDiv.style.padding = "0";
+          optionsDiv.style.maxWidth = "100%"; // allow buttons to flow
+
+          data.options.forEach(opt => {
+            const btn = document.createElement("button");
+            btn.textContent = opt;
+            btn.style.margin = "4px 4px 0 0";
+            btn.style.padding = "4px 8px";
+            btn.style.fontSize = "0.85rem";
+            btn.style.cursor = "pointer";
+            btn.style.borderRadius = "12px";
+            btn.style.border = "1px solid #ff5722";
+            btn.style.background = "white";
+            btn.style.color = "#ff5722";
+
+            btn.onmouseover = () => { btn.style.background = "#ff5722"; btn.style.color = "white"; };
+            btn.onmouseout = () => { btn.style.background = "white"; btn.style.color = "#ff5722"; };
+            btn.onclick = () => {
+              const redirects = {
+                "View Cart": "/cart",
+                "Checkout": "/cart",
+                "Book a Table": "/reserve",
+                "My Orders": "/orders",
+                "View My Reservations": "/reservations"
+              };
+
+              if (redirects[opt]) {
+                window.location.href = redirects[opt];
+                return;
+              }
+
+              document.getElementById("chat-input").value = opt;
+              sendChatMessage();
+            };
+            optionsDiv.appendChild(btn);
+          });
+          box.appendChild(optionsDiv);
+        }
+
+        box.scrollTop = box.scrollHeight;
+
+      } catch (err) {
+        box.removeChild(loadingDiv);
+        addChatMessage("Sorry, 😅 I’m still learning and couldn’t catch your request. You can ask me to: Show today’s menu, Add food to your cart(example: ‘3 burgers’), Guide you to reseerve a table. Please try again. I’ll take care of the rest 💬", "bot");
+        console.error(err);
+      }
+    }
+
+    // Button click
+    document.getElementById("chat-send").onclick = sendChatMessage;
+
+    // Press Enter
+    document.getElementById("chat-input").addEventListener("keypress", e => {
+      if (e.key === "Enter") sendChatMessage();
+    });
+
+    // Open chat
+    document.getElementById("chatbot-btn").onclick = () => {
+      document.getElementById("chatbot-window").style.display = "flex";
+    };
+
+    // Close chat
+    document.getElementById("chatbot-close").onclick = () => {
+      document.getElementById("chatbot-window").style.display = "none";
+    };
+
+    // AJAX Add to Cart
+    async function addToCart(itemId, btnElement) {
+      try {
+        const response = await fetch(`/cart/add/${itemId}`, {
+          headers: {
+            'X-Requested-With': 'XMLHttpRequest'
+          }
+        });
+        const data = await response.json();
+        if (data.success) {
+          // Update Count
+          const countEl = document.getElementById('cart-count');
+          if (countEl) countEl.textContent = data.cart_count;
+
+          // Add premium notification
+          showNotification(data.message || "Added to cart!", 'success');
+
+          // Button feedback (Message beside button)
+          if (btnElement) {
+            const feedback = document.createElement('span');
+            feedback.textContent = `Added ${data.item_count}`;
+            feedback.className = 'cart-feedback ms-2 small';
+
+            // Insert after the button
+            btnElement.parentNode.insertBefore(feedback, btnElement.nextSibling);
+
+            // Trigger reflow to enable transition
+            void feedback.offsetWidth;
+
+            // Animate in
+            feedback.classList.add('show');
+
+            // Remove after 1 second (visible time)
+            setTimeout(() => {
+              // Animate out
+              feedback.classList.remove('show');
+              // Remove from DOM after transition matches CSS (0.3s)
+              setTimeout(() => feedback.remove(), 300);
+            }, 1000);
+          }
+        } else {
+          showNotification(data.message || "Error adding item.", 'danger');
+        }
+      } catch (error) {
+        console.error('Error adding to cart:', error);
+      }
+    }
+
+    // Magic Cursor & Secret Dish Logic
+    (function () {
+      const spellSwitch = document.getElementById('spell-switch');
+      const footerTracker = document.getElementById('footer-tracker');
+      const magicKey = 'magic_cursor_enabled';
+
+      function updateMagicState(isEnabled) {
+        if (isEnabled) {
+          document.body.classList.add('magic-cursor-enabled');
+        } else {
+          document.body.classList.remove('magic-cursor-enabled');
+        }
+        if (spellSwitch) spellSwitch.checked = isEnabled;
+        localStorage.setItem(magicKey, isEnabled);
+      }
+
+      // Init state
+      const savedMagic = localStorage.getItem(magicKey) === 'true';
+      updateMagicState(savedMagic);
+
+      if (spellSwitch) {
+        spellSwitch.addEventListener('change', (e) => {
+          updateMagicState(e.target.checked);
+        });
+      }
+
+      // Smooth Footer Tracking
+      if (footerTracker) {
+        document.addEventListener('mousemove', (e) => {
+          const rect = footerTracker.getBoundingClientRect();
+          // Check if mouse is hovering over the footer container
+          if (e.clientX >= rect.left && e.clientX <= rect.right &&
+            e.clientY >= rect.top && e.clientY <= rect.bottom) {
+            const x = ((e.clientX - rect.left) / rect.width) * 100;
+            const y = ((e.clientY - rect.top) / rect.height) * 100;
+            footerTracker.style.setProperty('--mouse-x', `${x}%`);
+            footerTracker.style.setProperty('--mouse-y', `${y}%`);
+          }
+        });
+
+        footerTracker.addEventListener('mouseleave', () => {
+          footerTracker.style.setProperty('--mouse-x', '50%');
+          footerTracker.style.setProperty('--mouse-y', '50%');
+        });
+      }
+    })();
+  </script>
+
+  <script src="{{ url_for('static', filename='js/main.js') }}"></script>
+
+  {% block scripts %}{% endblock %}
+</body>
+
+</html>

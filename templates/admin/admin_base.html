@@ -1,0 +1,192 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <title>{% block title %}Admin - Finedine♡𓌉◯𓇋₊˚{% endblock %}</title>
+
+    <link rel="shortcut icon" href="/static/img/mylogo.png">
+
+    <!-- Bootstrap 5 -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+    <!-- Bootstrap Icons -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/admin.css') }}">
+    {% block head %}{% endblock %}
+</head>
+
+<body class="admin-body">
+    <!-- NOTIFICATION CONTAINER -->
+    <div id="notification-container"></div>
+
+    <!-- Premium Confirm Modal -->
+    <div id="premium-confirm-overlay" class="premium-modal-overlay">
+        <div class="premium-modal">
+            <div id="confirm-icon" class="premium-modal-icon">
+                <i class="bi bi-question-circle"></i>
+            </div>
+            <div id="confirm-title" class="premium-modal-title">Are you sure?</div>
+            <div id="confirm-body" class="premium-modal-body">Do you really want to proceed with this action?</div>
+            <div class="premium-modal-footer">
+                <button id="confirm-cancel-btn" class="premium-modal-btn btn-cancel">Cancel</button>
+                <button id="confirm-ok-btn" class="premium-modal-btn btn-confirm">Confirm</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="admin-wrapper">
+        <!-- Sidebar -->
+        <nav id="sidebar">
+            <div class="sidebar-header">
+                <h4 class="mb-0"><i class="bi bi-speedometer2 me-2"></i>Admin Panel</h4>
+            </div>
+
+            <ul class="list-unstyled components">
+                <li class="{% if request.endpoint == 'admin_index' %}active{% endif %}">
+                    <a href="{{ url_for('admin_index') }}"><i class="bi bi-grid-1x2"></i> Dashboard</a>
+                </li>
+                <li class="{% if request.endpoint == 'admin_add_menu' %}active{% endif %}">
+                    <a href="{{ url_for('admin_add_menu') }}"><i class="bi bi-plus-circle"></i> Add Menu Item</a>
+                </li>
+                <li class="{% if request.endpoint == 'admin_orders' %}active{% endif %}">
+                    <a href="{{ url_for('admin_orders') }}"><i class="bi bi-cart-check"></i> Orders</a>
+                </li>
+                <li class="{% if request.endpoint == 'admin_reservations' %}active{% endif %}">
+                    <a href="{{ url_for('admin_reservations') }}"><i class="bi bi-calendar-check"></i> Reservations</a>
+                </li>
+                <li class="{% if request.endpoint == 'sales_report' %}active{% endif %}">
+                    <a href="{{ url_for('sales_report') }}"><i class="bi bi-graph-up-arrow"></i> Sales Report</a>
+                </li>
+                <li class="{% if request.endpoint == 'admin_users' %}active{% endif %}">
+                    <a href="{{ url_for('admin_users') }}"><i class="bi bi-people"></i> Users</a>
+                </li>
+                <hr class="mx-3 border-secondary">
+                <li>
+                    <a href="{{ url_for('index') }}"><i class="bi bi-house"></i> View Site</a>
+                </li>
+                <li>
+                    <a href="{{ url_for('admin_logout') }}"><i class="bi bi-box-arrow-right"></i> Logout</a>
+                </li>
+            </ul>
+        </nav>
+
+        <!-- Page Content -->
+        <div id="content">
+            <nav class="navbar navbar-expand-lg navbar-dark bg-transparent mb-4">
+                <div class="container-fluid p-0">
+                    <button type="button" id="sidebarCollapse" class="btn btn-outline-light me-3 d-lg-none">
+                        <i class="bi bi-list"></i>
+                    </button>
+                    <h4 class="mb-0">{% block admin_title %}{% endblock %}</h4>
+
+                    <div class="ms-auto d-flex align-items-center">
+                        <span class="text-muted small me-3"><i class="bi bi-person-circle me-1"></i> Admin</span>
+                        <a href="{{ url_for('admin_logout') }}" class="btn btn-sm btn-outline-danger">Logout</a>
+                    </div>
+                </div>
+            </nav>
+
+            {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+            <script>
+                document.addEventListener('DOMContentLoaded', () => {
+                    {% for category, message in messages %}
+                    showNotification("{{ message }}", "{{ 'success' if category == 'success' else 'danger' if category == 'error' or category == 'danger' else 'warning' if category == 'warning' else 'primary' }}");
+                    {% endfor %}
+                });
+            </script>
+            {% endif %}
+            {% endwith %}
+
+            {% block content %}{% endblock %}
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            const sidebarCollapse = document.getElementById('sidebarCollapse');
+            const sidebar = document.getElementById('sidebar');
+            const content = document.getElementById('content');
+
+            if (sidebarCollapse) {
+                sidebarCollapse.addEventListener('click', function () {
+                    sidebar.classList.toggle('active');
+                    content.classList.toggle('active');
+                });
+            }
+        });
+
+        // Premium Notification System
+        function showNotification(message, type = 'primary') {
+            const container = document.getElementById('notification-container');
+            const toast = document.createElement('div');
+            toast.className = `custom-notification ${type}`;
+
+            const icon = type === 'success' ? 'bi-check-circle-fill' :
+                type === 'danger' ? 'bi-exclamation-triangle-fill' :
+                    type === 'warning' ? 'bi-exclamation-circle-fill' : 'bi-info-circle-fill';
+
+            toast.innerHTML = `
+                <i class="bi ${icon}"></i>
+                <div class="notif-content">${message}</div>
+            `;
+
+            container.appendChild(toast);
+
+            // Auto-remove after 4 seconds
+            setTimeout(() => {
+                toast.classList.add('hide');
+                setTimeout(() => toast.remove(), 500);
+            }, 4000);
+        }
+
+        async function handlePremiumConfirm(event, message, target, title = "Confirm Action", icon = "bi-exclamation-triangle") {
+            if (event) event.preventDefault();
+            const targetUrl = target.href;
+            const confirmed = await showConfirm(message, title, icon);
+            if (confirmed) {
+                window.location.href = targetUrl;
+            }
+        }
+
+        async function showConfirm(message, title = "Confirm Action", iconClass = "bi-exclamation-triangle") {
+            return new Promise((resolve) => {
+                const overlay = document.getElementById('premium-confirm-overlay');
+                const titleEl = document.getElementById('confirm-title');
+                const bodyEl = document.getElementById('confirm-body');
+                const iconEl = document.getElementById('confirm-icon');
+                const okBtn = document.getElementById('confirm-ok-btn');
+                const cancelBtn = document.getElementById('confirm-cancel-btn');
+
+                titleEl.textContent = title;
+                bodyEl.textContent = message;
+                iconEl.innerHTML = `<i class="bi ${iconClass}"></i>`;
+
+                overlay.classList.add('show');
+
+                const cleanup = (result) => {
+                    overlay.classList.remove('show');
+                    okBtn.onclick = null;
+                    cancelBtn.onclick = null;
+                    resolve(result);
+                };
+
+                okBtn.onclick = () => cleanup(true);
+                cancelBtn.onclick = () => cleanup(false);
+            });
+        }
+
+        // Override Alert
+        window.alert = (msg) => showNotification(msg, 'primary');
+
+        // Note: For admin actions we will call showConfirm explicitly in the templates
+    </script>
+    {% block scripts %}{% endblock %}
+</body>
+
+</html>

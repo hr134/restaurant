@@ -1,0 +1,60 @@
+{% extends 'base.html' %}
+{% block title %}Home{% endblock %}
+
+{% block content %}
+<div class="p-4 rounded-3 text-white"
+  style="background:linear-gradient(120deg, rgba(255,77,77,0.9), rgba(255,140,0,0.9)), url('{{ url_for('static', filename='img/pizza.jpg') }}') center/cover;">
+  <div class="container py-5 animate-on-scroll">
+    <h1 class="display-5">Delicious Food, Fast Delivery</h1>
+    <p class="lead">Explore our menu and order your favourite meals. Reserve a table or place an online order — it's
+      easy.</p>
+    <div class="d-flex flex-column flex-md-row justify-content-left gap-3">
+      <a class="btn btn-light btn-lg" href="{{ url_for('menu') }}">Browse Menu</a>
+      <a class="btn btn-outline-light btn-lg" href="{{ url_for('reserve') }}">Reserve Table</a>
+    </div>
+  </div>
+</div>
+
+<div class="py-5">
+  <h3 class="animate-on-scroll">Featured</h3>
+  <div class="row g-3 mt-2">
+    {% for it in items[:6] %}
+    <div class="col-md-4 animate-on-scroll" style="transition-delay: {{ loop.index0 * 100 }}ms">
+      <div class="card card-shadow">
+        <div class="row g-0">
+          <div class="col-4">
+            <div class="parallax-wrapper" style="height: 100%; min-height: 100px;">
+              <img
+                src="{{ it.image and url_for('static', filename='uploads/' ~ it.image) or url_for('static', filename='img/placeholder.jpg') }}"
+                class="img-fluid rounded-start menu-img parallax-img" style="height: 100%; object-fit: cover;"
+                alt="{{ it.name }}">
+            </div>
+          </div>
+          <div class="col-8 p-3">
+            <h5>{{ it.name }}</h5>
+
+            <div class="star-rating" data-item-id="{{ it.id }}">
+              {% set avg = it.get_average_rating() %}
+              {% for i in range(1, 6) %}
+              <i class="bi bi-star{{ '-fill' if i <= avg else '' }} {{ 'active' if i <= avg else '' }}"
+                onclick="rateItem({{ it.id }}, {{ i }})"></i>
+              {% endfor %}
+              <span class="rating-text">({{ avg }})</span>
+            </div>
+
+            <p class="mb-1 small text-muted">{{ it.category }}</p>
+            <p class="mb-2"> ${{ '%.2f'|format(it.price) }}
+              {% if best_rated_item and best_rated_item.id == it.id %}
+              <span class="best-rated-badge">Best Rated</span>
+              {% endif %}
+            </p>
+            <a href="javascript:void(0);" onclick="addToCart({{ it.id }}, this)" class="btn btn-sm btn-primary">Add to
+              Cart</a>
+          </div>
+        </div>
+      </div>
+    </div>
+    {% endfor %}
+  </div>
+</div>
+{% endblock %}

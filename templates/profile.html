@@ -1,0 +1,50 @@
+{% extends 'base.html' %}
+{% block title %}My Profile{% endblock %}
+
+{% block content %}
+<h2>My Profile</h2>
+
+<div class="profile-card-container animate-on-scroll">
+  <div class="profile-3d-card">
+    <img
+      src="{{ user.profile_image and url_for('static', filename='uploads/' ~ user.profile_image) or url_for('static', filename='img/placeholder.jpg') }}"
+      class="profile-image-pop" alt="Profile Image">
+
+    <div class="profile-date-box">
+      <span class="user-label">USER</span>
+      <span class="user-id">{{ user.member_id }}</span>
+    </div>
+
+    <div class="profile-content-box">
+      <span class="card-title">{{ user.username }}</span>
+      <div class="card-content">
+        <p class="mb-2"><strong>Full Name:</strong> {{ user.full_name or 'Not set' }}</p>
+        <p class="mb-2">
+          <strong>Email:</strong> {{ user.email }}
+          {% if user.email_verified %}
+          <span class="email-verify-badge badge-verified" title="Verified Guest"><i
+              class="bi bi-patch-check-fill"></i></span>
+          {% else %}
+          <span class="email-verify-badge badge-unverified" title="Unverified Email">
+            <!-- <i class="bi bi-exclamation-circle"></i> -->
+            Verify
+          </span>
+          {% endif %}
+        </p>
+        <p class="mb-2"><strong>Phone:</strong> {{ user.phone or 'Not set' }}</p>
+
+        <hr class="my-3" style="border-top: 1px solid rgba(255,255,255,0.2);">
+
+        <h6 class="text-uppercase small fw-bold mb-2" style="letter-spacing: 1px; color: rgba(255,255,255,0.7);">Address
+        </h6>
+        <p class="mb-0">
+          {{ user.address_street or 'No street set' }}, <br>
+          {{ user.address_city or 'No city set' }}, {{ user.address_district or '' }}
+        </p>
+      </div>
+      <a href="{{ url_for('edit_profile') }}" class="see-more">Edit Profile</a>
+    </div>
+  </div>
+</div>
+
+{% endblock %}

@@ -1,0 +1,54 @@
+{% extends 'base.html' %}
+
+{% block title %}Admin Login - FineDine♡𓌉◯𓇋₊˚{% endblock %}
+
+{% block head %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/admin.css') }}">
+<style>
+  body {
+    background-color: #0f111a;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 100vh;
+  }
+
+  .login-card {
+    width: 100%;
+    max-width: 400px;
+    padding: 40px;
+    background: #1a1a1a;
+    border: 1px solid #333;
+    border-radius: 16px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="login-card mx-auto">
+  <div class="text-center mb-4">
+    <div class="display-6 mb-2 text-white"><i class="bi bi-shield-lock"></i></div>
+    <h3 class="text-white fw-bold">Admin Portal</h3>
+    <p class="text-muted small">Please sign in to access the dashboard</p>
+  </div>
+
+  <form method="post">
+    <div class="mb-3">
+      <label class="form-label text-muted small uppercase fw-bold">Username</label>
+      <input name="username" class="form-control admin-input" placeholder="Enter admin username" required autofocus>
+    </div>
+    <div class="mb-4">
+      <label class="form-label text-muted small uppercase fw-bold">Password</label>
+      <input type="password" name="password" class="form-control admin-input" placeholder="••••••••" required>
+    </div>
+
+    <button class="btn btn-primary w-100 py-2 fw-bold"><i class="bi bi-box-arrow-in-right me-2"></i>Sign In</button>
+  </form>
+
+  <div class="mt-4 text-center">
+    <a href="{{ url_for('index') }}" class="text-muted small text-decoration-none hover-white"><i
+        class="bi bi-arrow-left me-1"></i> Return to Site</a>
+  </div>
+</div>
+{% endblock %}

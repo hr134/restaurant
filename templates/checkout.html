@@ -1,0 +1,52 @@
+{% extends 'base.html' %}
+{% block title %}Checkout {% endblock %}
+
+{% block content %}
+<h2>Checkout</h2>
+<div class="card p-4">
+
+<h5>Select Payment Method</h5>
+
+<form method="post" action="{{ url_for('checkout') }}">
+
+    <div class="form-check">
+        <input type="radio" class="form-check-input" name="payment_method" value="cod" id="cod" checked>
+        <label for="cod" class="form-check-label">Cash on Delivery</label>
+    </div>
+
+    <div class="form-check">
+        <input type="radio" class="form-check-input" name="payment_method" value="paynow" id="paynow">
+        <label for="paynow" class="form-check-label">Pay Now</label>
+    </div>
+
+    <hr>
+
+    <div class="mb-3">
+        <label class="form-label">Contact Phone</label>
+        <input name="phone" class="form-control" placeholder="+88..." required>
+    </div>
+
+    <h5>Delivery Address</h5>
+
+    <div class="mb-3">
+        <label class="form-label">District</label>
+        <input name="district" class="form-control" required>
+    </div>
+
+    <div class="mb-3">
+        <label class="form-label">City</label>
+        <input name="city" class="form-control" required>
+    </div>
+
+    <div class="mb-3">
+        <label class="form-label">Street Address</label>
+        <input name="street" class="form-control" required>
+    </div>
+
+    <button type="submit" class="btn btn-success">Continue</button>
+    <a href="{{ url_for('cart') }}" class="btn btn-link">Back to Cart</a>
+
+</form>
+
+</div>
+{% endblock %}

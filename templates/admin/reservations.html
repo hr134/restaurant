@@ -1,0 +1,153 @@
+{% extends 'admin/admin_base.html' %}
+
+{% block title %}Manage Reservations - Admin{% endblock %}
+
+{% block admin_title %}Reservation Management{% endblock %}
+
+
+{% block head %}
+<meta http-equiv="refresh" content="60">
+{% endblock %}
+
+
+{% block content %}
+<div class="glass-card">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h5 class="mb-0 text-white"><i class="bi bi-calendar-check me-2 text-primary"></i>All Table Reservations</h5>
+    </div>
+    <div class="table-responsive">
+        <table class="admin-table">
+            <thead>
+                <tr>
+                    <th>SL#</th>
+                    <th>Table</th>
+                    <th>Customer</th>
+                    <th>Date & Time</th>
+                    <th>Guests</th>
+                    <th>Duration</th>
+                    <th>Status</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for r in reservations %}
+                <tr>
+                    <td><span class="text-white opacity-75">{{ reservations|length - loop.index0 }}</span></td>
+                    <td><span class="badge bg-secondary px-3 py-2">Table {{ r.table_no }}</span></td>
+                    <td>
+                        {% if r.user %}
+                        <a class="text-info text-decoration-none fw-bold" href="javascript:void(0);"
+                            onclick="openUserModal('{{ r.user.username }}')">
+                            @{{ r.user.username }}
+                            {% if r.user.email_verified %}
+                            <i class="bi bi-patch-check-fill text-success small ms-1" title="Verified"></i>
+                            {% endif %}
+                        </a>
+                        {% else %}
+                        <span class="text-white opacity-75">Anonymous</span>
+                        {% endif %}
+                    </td>
+                    <td>
+                        <div class="text-white fw-bold">{{ r.date }}</div>
+                        <small class="text-stylish"><i class="bi bi-clock me-1"></i>{{ r.time }}</small>
+                    </td>
+                    <td><span class="text-white">{{ r.guests }} Guests</span></td>
+                    <td><span class="text-white">{{ r.duration }} hrs</span></td>
+                    <td>
+                        <span class="badge-admin 
+                            {% if r.status == 'Canceled' %}badge-admin-danger
+                            {% else %}badge-admin-success{% endif %}">
+                            {{ r.status }}
+                        </span>
+                    </td>
+                    <td>
+                        <div class="btn-group">
+                            {% if r.status != 'Confirmed' %}
+                            <a class="btn btn-sm btn-success"
+                                href="{{ url_for('admin_confirm_reservation', res_id=r.id) }}">
+                                <i class="bi bi-check-circle"></i> Confirm
+                            </a>
+                            {% endif %}
+
+                            {% if r.status != 'Canceled' %}
+                            <a class="btn btn-sm btn-warning"
+                                href="{{ url_for('admin_cancel_reservation', res_id=r.id) }}">
+                                <i class="bi bi-x-circle"></i> Cancel
+                            </a>
+                            {% endif %}
+                            <a class="btn btn-sm btn-outline-danger"
+                                href="{{ url_for('admin_remove_reservation', res_id=r.id) }}"
+                                onclick="handlePremiumConfirm(event, 'Permanently remove this reservation record?', this, 'Remove Reservation', 'bi-trash')">
+                                <i class="bi bi-trash"></i>
+                            </a>
+                        </div>
+                    </td>
+                </tr>
+                {% else %}
+                <tr>
+                    <td colspan="7" class="text-center py-4 text-stylish">No reservations found.</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<!-- VIEW-ONLY USER MODAL -->
+<div class="modal fade" id="userModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content bg-dark border-secondary text-light">
+            <div class="modal-header border-secondary">
+                <h5 class="modal-title text-white"><i class="bi bi-person-gear me-2"></i>User Profile</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body border-secondary" id="userModalBody">
+                <!-- Placeholder - populated via AJAX -->
+                <div class="text-center p-4">
+                    <div class="spinner-border text-primary" role="status"></div>
+                </div>
+            </div>
+            <div class="modal-footer border-secondary">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    function openUserModal(username) {
+        const modal = new bootstrap.Modal(document.getElementById('userModal'));
+        const body = document.getElementById('userModalBody');
+        body.innerHTML = '<div class="text-center p-4"><div class="spinner-border text-primary" role="status"></div></div>';
+        modal.show();
+
+        fetch(`/admin/user/${username}`)
+            .then(res => { if (!res.ok) throw new Error('User not found'); return res.json(); })
+            .then(data => {
+                body.innerHTML = `
+            <div class="text-center mb-4">
+              <img src="${data.profile_image ? '/static/uploads/' + data.profile_image : '/static/img/placeholder.jpg'}" class="rounded-circle border border-secondary p-1" width="100" height="100" style="object-fit:cover;">
+            </div>
+            <div class="row g-3">
+              <div class="col-12"><label class="text-muted small">Username</label><p class="text-white fw-bold mb-0">${data.username}</p></div>
+              <div class="col-md-6">
+                <label class="text-muted small">Email 
+                    ${data.email_verified ? '<span class="badge bg-success small ms-1" style="font-size: 0.6rem;">VERIFIED</span>' : '<span class="badge bg-warning text-dark small ms-1" style="font-size: 0.6rem;">UNVERIFIED</span>'}
+                </label>
+                <p class="text-white mb-0">${data.email}</p>
+              </div>
+              <div class="col-md-6"><label class="text-muted small">Full Name</label><p class="text-white mb-0">${data.full_name}</p></div>
+              <div class="col-md-6"><label class="text-muted small">Phone</label><p class="text-white mb-0">${data.phone || 'N/A'}</p></div>
+              <div class="col-md-6"><label class="text-muted small">City</label><p class="text-white mb-0">${data.address_city || 'N/A'}</p></div>
+              <div class="col-12"><label class="text-muted small">Street</label><p class="text-white mb-0">${data.address_street || 'N/A'}</p></div>
+            </div>
+        `;
+            })
+            .catch(err => {
+                body.innerHTML = `<div class="alert alert-danger">${err.message}</div>`;
+            });
+    }
+</script>
+{% endblock %}

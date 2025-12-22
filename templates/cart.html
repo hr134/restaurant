@@ -1,0 +1,69 @@
+{% extends 'base.html' %}
+{% block title %}Cart {% endblock %}
+
+{% block content %}
+<h2>Your Cart</h2>
+<form method="post" action="{{ url_for('cart_update') }}">
+  <div class="table-responsive">
+    <table class="table align-middle">
+      <thead>
+        <tr>
+          <th>Item</th>
+          <th>Qty</th>
+          <th>Price</th>
+          <th>Subtotal</th>
+          <th></th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for it in items %}
+        <tr>
+          <td>
+            <div class="d-flex align-items-center gap-3">
+              <img
+                src="{{ it.image and url_for('static', filename='uploads/' ~ it.image) or url_for('static', filename='img/placeholder.jpg') }}"
+                class="cart-img-thumb me-2" alt="{{ it.name }}">
+              <div>{{ it.name }}<div class="small text-muted">${{ '%.2f'|format(it.price) }}</div>
+              </div>
+            </div>
+          </td>
+          <td>
+            <div class="input-group" style="width: 120px;">
+              <a href="{{ url_for('cart_decrease', item_id=it.id) }}" class="btn btn-sm btn-outline-secondary">-</a>
+              <input type="text" value="{{ it.qty }}" class="form-control text-center" readonly style="padding: 0;">
+              <a href="{{ url_for('cart_add', item_id=it.id) }}" class="btn btn-sm btn-outline-secondary">+</a>
+            </div>
+          </td>
+          <td>${{ '%.2f'|format(it.price) }}</td>
+          <td>${{ '%.2f'|format(it.subtotal) }}</td>
+          <td><a href="{{ url_for('cart_remove', item_id=it.id) }}" class="btn btn-sm btn-outline-danger">Remove</a>
+          </td>
+        </tr>
+        {% else %}
+        <tr>
+          <td colspan="5">Your cart is empty.</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+
+  <div class="d-flex justify-content-between align-items-center">
+    <div>
+      <!-- Update button removed as adjustments are instant -->
+      <a href="{{ url_for('menu') }}" class="btn btn-link">Continue Shopping</a>
+    </div>
+    <div>
+      <strong>Total: ${{ '%.2f'|format(total) }}</strong>
+      <!-- <a href="{{ url_for('checkout') }}" class="btn btn-primary ms-3">Proceed to Checkout</a> -->
+      {% if not is_profile_complete %}
+      <a href="{{ url_for('profile') }}" class="btn btn-warning">Complete Your Profile <br> to place the order</a>
+      {% else %}
+      <a href="{{ url_for('checkout') }}" class="btn btn-success">Proceed to Checkout</a>
+      {% endif %}
+
+
+    </div>
+  </div>
+</form>
+{% endblock %}
