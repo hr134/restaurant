@@ -1066,7 +1066,7 @@ def reserve():
             duration=duration,
             guests=guests,
             table_no=table_no,
-            status="Active"
+            status="Pending"
         )
 
         db.session.add(new_res)

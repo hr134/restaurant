@@ -724,8 +724,12 @@ footer.site-footer {
 .profile-card-container {
     width: 100%;
     max-width: 500px;
-    margin: 2rem auto;
+    margin: 4rem auto 2rem auto;
+    /* Increased top margin to clear navbar */
     perspective: 1200px;
+    position: relative;
+    z-index: 1050;
+    /* Higher than sticky-top (1020) */
 }
 
 .profile-3d-card {
@@ -862,7 +866,8 @@ footer.site-footer {
     box-shadow: var(--shadow-lg);
     transform: translate3d(0, 0, 100px);
     object-fit: cover;
-    z-index: 11;
+    z-index: 1051;
+    /* Over navbar */
     transition: transform 0.5s ease;
 }
 

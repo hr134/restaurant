@@ -50,8 +50,10 @@
             <span class="badge bg-danger rounded-pill">Canceled</span>
             {% elif r.status == 'Pending' %}
             <span class="badge bg-warning text-dark rounded-pill">Pending</span>
-            {% else %}
+            {% elif r.status == 'Confirmed' %}
             <span class="badge bg-success rounded-pill">Confirmed</span>
+            {% else %}
+            <span class="badge bg-info rounded-pill">{{ r.status }}</span>
             {% endif %}
           </p>
         </div>
