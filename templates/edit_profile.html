@@ -156,7 +156,19 @@
 
           if (data.success) {
             showNotification(data.message, 'success');
-            setTimeout(() => location.reload(), 1000);
+
+            // Update UI dynamically
+            document.querySelectorAll('.email-verify-badge').forEach(badge => {
+              badge.className = 'email-verify-badge badge-verified';
+              badge.innerHTML = '<i class="bi bi-patch-check-fill"></i> Verified';
+            });
+
+            // Hide verification section and button
+            const sec = document.getElementById('verification-section');
+            if (sec) sec.style.display = 'none';
+            const initBtn = document.getElementById('init-verify-btn');
+            if (initBtn) initBtn.style.display = 'none';
+
           } else {
             showNotification(data.message, 'warning');
             if (spinner) spinner.classList.add('d-none');

@@ -25,8 +25,8 @@
           <span class="email-verify-badge badge-verified" title="Verified Guest"><i
               class="bi bi-patch-check-fill"></i></span>
           {% else %}
-          <span class="email-verify-badge badge-unverified" title="Unverified Email">
-            <!-- <i class="bi bi-exclamation-circle"></i> -->
+          <span class="email-verify-badge badge-unverified" title="Unverified Email" style="cursor: pointer;"
+            onclick="initGlobalVerification('{{ user.email }}')">
             Verify
           </span>
           {% endif %}
