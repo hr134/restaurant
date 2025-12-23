@@ -139,8 +139,9 @@
                 <div class="notif-content">${message}</div>
             `;
 
-            // Sequential timing: Yellow (warning) comes 200ms late
-            const delay = type === 'warning' ? 200 : 0;
+            // Sequential timing: Email/Notification messages come 400ms late
+            const isEmailNotif = message.toLowerCase().includes('email') || message.toLowerCase().includes('notification');
+            const delay = isEmailNotif ? 400 : 0;
 
             setTimeout(() => {
                 container.appendChild(toast);
