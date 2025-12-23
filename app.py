@@ -1698,11 +1698,11 @@ def book_table_tool(date, time, guests, table_no="Any"):
             duration=2,
             guests=guests,
             table_no=table_no if table_no != "Any" else "T1", # Assign T1 default if Any
-            status="Active"
+            status="Pending"
         )
         db.session.add(new_res)
         db.session.commit()
-        return f"Reservation confirmed for {guests} guests on {date} at {time}. Table: {new_res.table_no}."
+        return f"Reservation request sent for {guests} guests on {date} at {time}. Status: Pending (Waiting for admin confirmation). Table: {new_res.table_no}."
     except Exception as e:
         return f"System Error: {str(e)}"
 

@@ -22,8 +22,8 @@
   </div>
   <div class="col-md-3">
     <div class="glass-card text-center">
-      <div class="text-muted small mb-1">Active Reservations</div>
-      <h3 class="mb-0 text-white">{{ reservations|selectattr('status', 'equalto', 'Active')|list|length }}</h3>
+      <div class="text-muted small mb-1">Total Reservations</div>
+      <h3 class="mb-0 text-white">{{ reservations|length }}</h3>
     </div>
   </div>
   <div class="col-md-3">
