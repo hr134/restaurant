@@ -1332,7 +1332,7 @@ def admin_delete_order(order_id):
     else:
         flash('Order not found.', 'danger')
 
-    return redirect(url_for('admin_index'))
+    return redirect(request.referrer or url_for('admin_index'))
 
 
 @app.route('/admin/order/confirm/<int:order_id>')
@@ -1361,7 +1361,7 @@ def admin_confirm_order(order_id):
     else:
         flash(f"Note: Email error for {user.email}", 'warning')
         
-    return redirect(url_for('admin_index'))
+    return redirect(request.referrer or url_for('admin_index'))
 
 
 @app.route('/admin/reservation/cancel/<int:res_id>')
@@ -1388,7 +1388,7 @@ def admin_cancel_reservation(res_id):
     else:
         flash(f"Note: Email error for {user.email}", 'warning')
 
-    return redirect(url_for('admin_index'))
+    return redirect(request.referrer or url_for('admin_index'))
 
 
 @app.route('/admin/reservation/confirm/<int:res_id>')
@@ -1415,7 +1415,7 @@ def admin_confirm_reservation(res_id):
     else:
         flash(f"Note: Email error for {user.email}", 'warning')
         
-    return redirect(url_for('admin_index'))
+    return redirect(request.referrer or url_for('admin_index'))
 
 
 @app.route('/admin/reservation/remove/<int:res_id>')
@@ -1441,7 +1441,7 @@ def admin_remove_reservation(res_id):
         flash(f"Notification sent to {user.email}", 'success')
     else:
         flash(f"Note: Email error for {user.email}", 'warning')
-    return redirect(url_for('admin_index'))
+    return redirect(request.referrer or url_for('admin_index'))
 
 
 

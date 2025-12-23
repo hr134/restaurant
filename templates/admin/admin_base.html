@@ -139,13 +139,18 @@
                 <div class="notif-content">${message}</div>
             `;
 
-            container.appendChild(toast);
+            // Sequential timing: Yellow (warning) comes 200ms late
+            const delay = type === 'warning' ? 200 : 0;
 
-            // Auto-remove after 4 seconds
             setTimeout(() => {
-                toast.classList.add('hide');
-                setTimeout(() => toast.remove(), 500);
-            }, 4000);
+                container.appendChild(toast);
+
+                // Auto-remove after 4 seconds
+                setTimeout(() => {
+                    toast.classList.add('hide');
+                    setTimeout(() => toast.remove(), 500);
+                }, 4000);
+            }, delay);
         }
 
         async function handlePremiumConfirm(event, message, target, title = "Confirm Action", icon = "bi-exclamation-triangle") {
