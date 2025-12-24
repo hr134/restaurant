@@ -1513,7 +1513,14 @@ def admin_delete_user_api(username):
             'message': 'You cannot delete your own account while logged in.'
         }), 400
         
-    # Safeguard 2: Prevent deleting the last admin
+    # Safeguard 2: Prevent deleting the system protected admin
+    if user.username == 'admin':
+        return jsonify({
+            'success': False,
+            'message': 'System account "admin" is protected and cannot be deleted.'
+        }), 400
+
+    # Safeguard 3: Prevent deleting the last admin
     if user.is_admin:
         admin_count = User.query.filter_by(is_admin=True).count()
         if admin_count <= 1:
@@ -1557,6 +1564,43 @@ def admin_promote_user_api(username):
     return jsonify({
         'success': True,
         'message': f'@{user.username} has been promoted to Administrator.',
+        'email_status': email_status
+    })
+
+@app.route('/admin/user/<username>/demote', methods=['POST'])
+@admin_required
+def admin_demote_user_api(username):
+    user = User.query.filter_by(username=username.lower()).first_or_404()
+    
+    # Safeguard 1: Prevent self-demotion
+    if user.id == session.get('user_id'):
+        return jsonify({
+            'success': False,
+            'message': 'You cannot demote your own account. Use logout if you wish to leave.'
+        }), 400
+
+    # Safeguard 2: Prevent demoting the system protected admin
+    if user.username == 'admin':
+        return jsonify({
+            'success': False,
+            'message': 'System account "admin" is protected and cannot be demoted.'
+        }), 400
+
+    if not user.is_admin:
+        return jsonify({'success': False, 'message': 'User is not an administrator.'}), 400
+    
+    user.is_admin = False
+    db.session.commit()
+    
+    # Notify User
+    email_status = False
+    if user.email:
+        email_status = send_email("Account Status Update", user.email, 
+                   f"Hello {user.username},\n\nYour account role has been changed to Regular User. You no longer have access to the Management Panel.\n\nRegards,\nFinedine Team")
+        
+    return jsonify({
+        'success': True,
+        'message': f'@{user.username} has been demoted to Regular User.',
         'email_status': email_status
     })
 

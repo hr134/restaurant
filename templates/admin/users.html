@@ -165,6 +165,14 @@
                 }
 
                 const modal = new bootstrap.Modal(document.getElementById('userModal'));
+                const deleteBtn = document.querySelector('#userModal .btn-outline-danger');
+                if (data.username === 'admin') {
+                    deleteBtn.disabled = true;
+                    deleteBtn.title = "System account 'admin' cannot be deleted.";
+                } else {
+                    deleteBtn.disabled = false;
+                    deleteBtn.title = "";
+                }
                 modal.show();
             })
             .catch(err => showNotification(err.message, 'danger'));

@@ -53,9 +53,17 @@
                         <span class="small text-muted">{{ admin.created_at.strftime('%Y-%m-%d') }}</span>
                     </td>
                     <td>
-                        <button class="btn btn-sm btn-outline-light" onclick="openAdminView('{{ admin.username }}')">
-                            <i class="bi bi-eye"></i> View
-                        </button>
+                        <div class="btn-group">
+                            <button class="btn btn-sm btn-outline-light"
+                                onclick="openAdminView('{{ admin.username }}')">
+                                <i class="bi bi-eye"></i> View
+                            </button>
+                            {% if admin.username != 'admin' and admin.username != session['username'] %}
+                            <button class="btn btn-sm btn-outline-danger" onclick="demoteAdmin('{{ admin.username }}')">
+                                <i class="bi bi-person-dash"></i> Demote
+                            </button>
+                            {% endif %}
+                        </div>
                     </td>
                 </tr>
                 {% endfor %}
@@ -210,6 +218,30 @@
                 const modal = new bootstrap.Modal(document.getElementById('adminModal'));
                 modal.show();
             });
+    }
+
+    async function demoteAdmin(username) {
+        if (!username) return;
+
+        const confirmed = await showConfirm(
+            `Demote @${username} to Regular User? They will lose all administrative access.`,
+            "Demote Administrator",
+            "bi-person-dash"
+        );
+
+        if (confirmed) {
+            fetch(`/admin/user/${username}/demote`, { method: 'POST' })
+                .then(res => res.json())
+                .then(data => {
+                    if (data.success) {
+                        showNotification(data.message, 'success');
+                        setTimeout(() => location.reload(), 1000);
+                    } else {
+                        showNotification(data.message, 'danger');
+                    }
+                })
+                .catch(err => showNotification('Demotion failed', 'danger'));
+        }
     }
 </script>
 
